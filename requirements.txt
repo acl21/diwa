@@ -1,0 +1,14 @@
+av
+imageio
+einops
+gym
+gymnasium
+hydra-core
+omegaconf
+matplotlib
+wandb
+torch
+torchvision
+stable_baselines3
+patchelf
+scikit-learn
