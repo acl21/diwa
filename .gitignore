@@ -172,3 +172,11 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+logs/*
+lightning_logs/*
+dataset/*
+!dataset/README.md
+!dataset/download_data.sh
+.vscode/*
+**/outputs/*
+*.out

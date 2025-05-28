@@ -1,0 +1,29 @@
+[flake8]
+exclude = .git
+max-line-length = 120
+select = E,F,W,C
+
+# Flake8 rules to ignore:
+# - W503: line break before binary operator (Black wants this)
+# - W605: invalid escape sequence
+# - E203: whitespace before ':' (Black wants this)
+# - E731: assign a lambda expression
+# - E722: bare except
+# - F401: unused import
+# - F841: assigned but unused variable
+# - E402: module level import not at top of file
+# - E741: ambiguous variable name
+# - E501: line too long (handled by Black)
+# - C406: unnecessary list literal
+ignore =
+    W503,
+    W605,
+    E203,
+    E731,
+    E722,
+    F401,
+    F841,
+    E402,
+    E741,
+    E501,
+    C406

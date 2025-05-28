@@ -1,0 +1,10 @@
+_target_: pytorch_lightning.loggers.WandbLogger
+_recursive_: false
+save_dir: ${log_dir}/wandb
+save_code: true
+name: ???
+group: null
+log_model: false
+project: ${script}
+entity: in-ac
+id: ???
