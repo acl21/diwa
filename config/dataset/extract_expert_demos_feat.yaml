@@ -1,0 +1,10 @@
+defaults:
+  - ../setup@_global_
+
+input_dir: ${root}/dataset/calvin/task_D_D_rgb64_rot6d/
+output_dir: ${root}/dataset/expert/calvin-img-50/
+features_path: ${root}/dataset/calvin/task_D_D_rgb64_rot6d/cached_feats_vision_small_seq50_2M.pkl
+skills_list: ["open_drawer", "close_drawer", "move_slider_left", "move_slider_right", "turn_on_lightbulb", "turn_off_lightbulb", "turn_on_led", "turn_off_led"]
+fields_to_extract: ["features", "rel_actions"]
+n_episodes: 50 # Randomly chosen, use -1 for all episodes
+step_len: 1

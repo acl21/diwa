@@ -1,4 +1,4 @@
 [submodule "lumos"]
     path = lumos
     url = https://github.com/nematoli/lumos
-    branch = torch2x
+    branch = diwa

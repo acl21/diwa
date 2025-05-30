@@ -1,0 +1,12 @@
+defaults:
+  - ../setup@_global_
+
+input_dir: ${root}/dataset/calvin/task_D_D_rgb64_rot6d/
+output_dir: ${root}/dataset/expert/calvin-img-50/
+skills_list: ["open_drawer", "close_drawer", "move_slider_left", "move_slider_right", "turn_on_lightbulb", "turn_off_lightbulb", "turn_on_led", "turn_off_led"]
+fields_to_extract: ["rgb_static", "rgb_gripper", "robot_obs", "scene_obs", "rel_actions"]
+n_episodes: 50 # Randomly chosen, use -1 for all episodes
+step_len: 1
+normalize: true
+save_starts: true
+save_start_length: 1

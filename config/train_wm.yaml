@@ -11,7 +11,8 @@ defaults:
   - override hydra/job_logging: colorlog
   - override hydra/hydra_logging: colorlog
 
-script: state_wm
+log_dir: ${root}/logs/wm
+script: wm
   
 hydra:
   run:

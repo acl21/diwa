@@ -1,0 +1,7 @@
+defaults:
+  - ../setup@_global_
+
+input_dir: ${root}/dataset/calvin/task_D_D
+output_dir: ${root}/dataset/calvin/task_D_D_state_rot6d
+desired_keys: ['rel_actions', 'robot_obs', 'scene_obs']  # ['actions', 'rel_actions', 'robot_obs', 'scene_obs', 'rgb_static', 'rgb_gripper', 'rgb_tactile', 'depth_static', 'depth_gripper', 'depth_tactile']
+rot6d: true

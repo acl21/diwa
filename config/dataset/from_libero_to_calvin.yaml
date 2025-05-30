@@ -1,0 +1,7 @@
+defaults:
+  - ../setup@_global_
+
+input_dir: ${root}/dataset/libero/
+output_dir: ${root}/dataset/libero/
+benchmark: libero_90_256 # regenerated libero_90 with 256 resolution
+benchmark_calvin_fmt: libero_90_calvin_fmt_256_full # converted to calvin format with 256 resolution

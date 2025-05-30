@@ -12,3 +12,4 @@ torchvision
 stable_baselines3
 patchelf
 scikit-learn
+h5py

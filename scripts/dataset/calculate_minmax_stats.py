@@ -2,20 +2,23 @@ import argparse
 from pathlib import Path
 import shutil
 
+import hydra
 import numpy as np
+from omegaconf import DictConfig
 from tqdm import tqdm
 
 
-def calculate_dataset_statistics(args) -> None:
-    input_dir = Path(args.input_dir)
-    output_dir = Path(args.output_dir)
+@hydra.main(version_base="1.3", config_path="../../config/dataset", config_name="calculate_stats")
+def calculate_dataset_statistics(cfg: DictConfig) -> None:
+    input_dir = Path(cfg.input_dir)
+    output_dir = Path(cfg.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    min_robot_obs = np.array([np.inf] * args.robot_obs_size)
-    max_robot_obs = np.array([-np.inf] * args.robot_obs_size)
-    if args.scene_obs_included:
-        min_scene_obs = np.array([np.inf] * args.scene_obs_size)
-        max_scene_obs = np.array([-np.inf] * args.scene_obs_size)
+    min_robot_obs = np.array([np.inf] * cfg.robot_obs_size)
+    max_robot_obs = np.array([-np.inf] * cfg.robot_obs_size)
+    if cfg.scene_obs_included:
+        min_scene_obs = np.array([np.inf] * cfg.scene_obs_size)
+        max_scene_obs = np.array([-np.inf] * cfg.scene_obs_size)
 
     act_min = np.array([np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf])
     act_max = np.array([-np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf, -np.inf])
@@ -27,14 +30,14 @@ def calculate_dataset_statistics(args) -> None:
         ep_start_end_ids = np.load(split_path / "ep_start_end_ids.npy", allow_pickle=True)
         for ep_start, ep_end in tqdm(ep_start_end_ids):
             for ep_id in tqdm(range(ep_start, ep_end + 1)):
-                ep_id_str = str(ep_id).zfill(6)
+                ep_id_str = str(ep_id).zfill(cfg.episode_id_length)
                 npz_file = split_path / f"episode_{ep_id_str}.npz"
 
                 data = np.load(npz_file)
 
                 min_robot_obs = np.minimum(min_robot_obs, data["robot_obs"])
                 max_robot_obs = np.maximum(max_robot_obs, data["robot_obs"])
-                if args.scene_obs_included:
+                if cfg.scene_obs_included:
                     min_scene_obs = np.minimum(min_scene_obs, data["scene_obs"])
                     max_scene_obs = np.maximum(max_scene_obs, data["scene_obs"])
 
@@ -42,7 +45,7 @@ def calculate_dataset_statistics(args) -> None:
                 act_max = np.maximum(act_max, data["rel_actions"].max(axis=0))
 
     # Save the min and max for normalization
-    if args.scene_obs_included:
+    if cfg.scene_obs_included:
         np.savez_compressed(
             output_dir / "statistics_minmax.npz",
             robot_obs_min=min_robot_obs,
@@ -70,7 +73,7 @@ def calculate_dataset_statistics(args) -> None:
         "act_min_bound": np.round(act_min, 6).tolist(),
         "act_max_bound": np.round(act_max, 6).tolist(),
     }
-    if args.scene_obs_included:
+    if cfg.scene_obs_included:
         stats_dict["scene_obs"] = {
             "min": np.round(min_scene_obs, 6).tolist(),
             "max": np.round(max_scene_obs, 6).tolist(),
@@ -94,34 +97,4 @@ def calculate_dataset_statistics(args) -> None:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--input-dir",
-        type=str,
-        default="/data2/ws1/nematoli-MORSE/libero/libero_90_calvin_fmt_64/",
-    )
-    parser.add_argument(
-        "--output-dir",
-        type=str,
-        default="/data2/ws1/nematoli-MORSE/libero/libero_90_calvin_fmt_64/",
-    )
-    parser.add_argument(
-        "--robot-obs-size",
-        type=int,
-        default=15,
-        help="Size of the robot observation vector",
-    )
-    parser.add_argument(
-        "--scene-obs-size",
-        type=int,
-        default=33,
-        help="Size of the scene observation vector",
-    )
-    parser.add_argument(
-        "--scene-obs-included",
-        action="store_true",
-        help="Include scene observation in the statistics",
-        default=False,
-    )
-    args = parser.parse_args()
-    calculate_dataset_statistics(args)
+    calculate_dataset_statistics()
