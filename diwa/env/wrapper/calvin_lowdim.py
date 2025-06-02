@@ -9,7 +9,7 @@ from diwa.env.wrapper.base_calvin import CALVINBaseWrapper
 logger = logging.getLogger(__name__)
 
 
-class CALVINImageWrapper(CALVINBaseWrapper):
+class CALVINLowDimWrapper(CALVINBaseWrapper):
     def __init__(
         self,
         cfg,
@@ -38,26 +38,17 @@ class CALVINImageWrapper(CALVINBaseWrapper):
 
     def get_observation_space(self):
         """Returns the observation space for the environment based on the skill"""
-        obs_dim = 18
-        rgb_dim = 64 * 64 * 6
-        return gym.spaces.Dict(
-            {
-                "state": gym.spaces.Box(low=-np.inf, high=np.inf, shape=(obs_dim,)),
-                "rgb": gym.spaces.Box(low=0, high=255, shape=(rgb_dim,)),
-            }
-        )
+        obs_dim = 51  # 18 + 33
+        return gym.spaces.Box(low=-1, high=1, shape=(obs_dim,))
 
     def get_obs(self):
-        state_obs = super().get_state_obs()
-        robot_obs = state_obs["robot_obs"]
+        obs = super().get_state_obs()
+        robot_obs = obs["robot_obs"]
+        scene_obs = obs["scene_obs"]
         robot_obs = replace_euler_with_rot6d(self.rot_transformer, robot_obs, type="robot")
+        scene_obs = replace_euler_with_rot6d(self.rot_transformer, scene_obs, type="scene")
+
+        obs = np.concatenate([robot_obs, scene_obs])
         if self.normalize:
-            robot_obs = self.normalize_obs(robot_obs)
-
-        image = self.get_rgb_obs(size=64)
-
-        obs = {}
-        obs["state"] = robot_obs
-        obs["rgb"] = image
-
+            obs = self.normalize_obs(obs)
         return obs

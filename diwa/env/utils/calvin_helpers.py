@@ -1,4 +1,11 @@
+import cv2
 import numpy as np
+
+
+def resize_image(image, intp, resolution=64):
+    """Resize an image to the target size using INTER_AREA interpolation."""
+    target_size = (resolution, resolution)
+    return cv2.resize(image, target_size, interpolation=intp)
 
 
 def sample_random_robot_pos(size):

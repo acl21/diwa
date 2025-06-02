@@ -7,11 +7,7 @@ import numpy as np
 from omegaconf import DictConfig
 from tqdm import tqdm
 
-
-def resize_image(image, intp, resolution=64):
-    """Resize an image to the target size using INTER_AREA interpolation."""
-    target_size = (resolution, resolution)
-    return cv2.resize(image, target_size, interpolation=intp)
+from diwa.env.utils.calvin_helpers import resize_image
 
 
 @hydra.main(version_base="1.3", config_path="../config/dataset", config_name="preprocess_calvin")

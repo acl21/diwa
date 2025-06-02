@@ -26,14 +26,14 @@ def make_async_calvin(
 
     if rgb_obs:
         if hybrid_obs:
-            from diwa.env.wrapper.calvin_image_rot6d_randinit import CALVINImageWrapper as CALVINWrapper
+            from diwa.env.wrapper.calvin_image_stateful import CALVINImageWrapper as CALVINWrapper
         else:
             if stacked_obs:
                 from diwa.env.wrapper.calvin_image_stacked import CALVINImageWrapper as CALVINWrapper
             else:
-                from diwa.env.wrapper.calvin_image_only_rot6d_randinit import CALVINImageWrapper as CALVINWrapper
+                from diwa.env.wrapper.calvin_image import CALVINImageWrapper as CALVINWrapper
     else:
-        from diwa.env.wrapper.calvin_lowdim_rot6d_randinit import CALVINLowDimWrapper as CALVINWrapper
+        from diwa.env.wrapper.calvin_lowdim import CALVINLowDimWrapper as CALVINWrapper
 
     # There is always only one evaluation environment
     eval_env = CALVINWrapper(
