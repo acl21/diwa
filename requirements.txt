@@ -1,5 +1,5 @@
 av
-imageio
+imageio[ffmpeg]
 einops
 gym
 gymnasium

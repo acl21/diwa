@@ -190,9 +190,12 @@ def make_dataset(cfg: DictConfig) -> None:
                 step_len=cfg.step_len,
             )
 
-            obs_dim = extractor[0]["robot_obs"].shape[1] + extractor[0]["scene_obs"].shape[1]
+            obs_dim = extractor[0]["robot_obs"].shape[1]
+            if "scene_obs" in data_to_extract:
+                obs_dim += extractor[0]["scene_obs"].shape[1]
             action_dim = extractor[0]["rel_actions"].shape[1]
 
+            images = np.array([])
             states = np.array([])
             actions = np.array([])
             traj_lengths = np.array([])
@@ -256,6 +259,7 @@ def make_dataset(cfg: DictConfig) -> None:
                 action_max = np.maximum(action_max, np.max(rel_actions, axis=0))
 
                 # Append to arrays
+                images = np.vstack((images, image)) if images.size else image
                 states = np.vstack((states, state_obs)) if states.size else state_obs
                 actions = np.vstack((actions, rel_actions)) if actions.size else rel_actions
                 traj_lengths = np.append(traj_lengths, eps_len)
@@ -299,6 +303,7 @@ def make_dataset(cfg: DictConfig) -> None:
             # saving in robomimic format
             np.savez(
                 os.path.join(output_dir, f"{file_name}.npz"),
+                images=images,
                 states=states,
                 actions=actions,
                 traj_lengths=traj_lengths.astype(int),

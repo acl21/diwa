@@ -1,3 +1,7 @@
+[submodule "calvin_env"]
+    path = calvin_env
+    url = https://github.com/mees/calvin_env
+
 [submodule "lumos"]
     path = lumos
     url = https://github.com/nematoli/lumos
