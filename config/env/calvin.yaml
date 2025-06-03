@@ -1,0 +1,16 @@
+seed: 0
+use_vr: false
+show_gui: false
+data_path: data
+save_dir: /tmp
+record: false
+
+defaults:
+  - ../../calvin_env/conf/cameras@cameras: static_and_gripper
+  - ../../calvin_env/conf/env@env: play_table_env
+  - ../../calvin_env/conf/scene@scene: calvin_scene_D
+  - ../../calvin_env/conf/robot@robot: panda_longer_finger
+  - ../../calvin_env/conf/tasks@tasks: new_playtable_tasks
+
+env:
+  use_scene_info: true

@@ -3,19 +3,18 @@ defaults:
   - logger: wandb
   - ../lumos/config/tensor_cores@_global_
   - ../lumos/config/callbacks@callbacks: wm_default
-  - ../lumos/config/datamodule@datamodule: static_gripper_cam
-  - ../lumos/config/world_model@world_model: dreamer_v2
+  - ../lumos/config/datamodule@datamodule: static_gripper_cam_state
+  - ../lumos/config/world_model@world_model: dreamer_v2_hybrid
   - ../lumos/config/trainer@trainer: wm_default
   - _self_
 
-  - override ../lumos/config/datamodule/proprioception_dims@datamodule.proprioception_dims: robot_full
   - override hydra/job_logging: colorlog
   - override hydra/hydra_logging: colorlog
 
+log_dir: ${root}/logs/wm
 script: wm
-datamodule:
-  root_data_dir: ${root}/dataset/libero/libero_90_calvin_fmt_64
-  
+
+
 hydra:
   run:
     dir: ${log_dir}/runs/${now:%Y-%m-%d}/${now:%H-%M-%S}

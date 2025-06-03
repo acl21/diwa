@@ -130,7 +130,7 @@ celerybeat.pid
 # Environments
 .env
 .venv
-env/
+# env/
 venv/
 ENV/
 env.bak/
@@ -180,3 +180,7 @@ dataset/*
 .vscode/*
 **/outputs/*
 *.out
+
+# weights and bias
+wandb/
+**/wandb/

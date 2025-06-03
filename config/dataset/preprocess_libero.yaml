@@ -1,0 +1,9 @@
+defaults:
+  - ../setup@_global_
+
+input_dir: ${root}/dataset/libero/libero_90_calvin_fmt_256
+output_dir: ${root}/dataset/libero/libero_90_calvin_fmt_64
+desired_keys: ['rel_actions', 'robot_obs', 'scene_obs', 'rgb_static', 'rgb_gripper']  # ['actions', 'rel_actions', 'robot_obs', 'scene_obs', 'rgb_static', 'rgb_gripper', 'rgb_tactile', 'depth_static', 'depth_gripper', 'depth_tactile']
+desired_resolution: 64
+rgb_interpolation: Area # Area for downsampling, Cubic for upsampling
+rot6d: false

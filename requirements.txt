@@ -1,5 +1,5 @@
 av
-imageio
+imageio[ffmpeg]
 einops
 gym
 gymnasium
@@ -12,3 +12,4 @@ torchvision
 stable_baselines3
 patchelf
 scikit-learn
+h5py

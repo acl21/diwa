@@ -1,0 +1,88 @@
+defaults:
+  - _self_
+  - env@env_cfg: calvin
+hydra:
+  run:
+    dir: ${logdir}
+_target_: diwa.agent.pretrain.train_diffusion_agent.TrainDiffusionAgent
+
+name: ${env_name}_pre_diffusion_mlp_img_ta${horizon_steps}_td${denoising_steps}
+logdir: ${oc.env:DIWA_LOG_DIR}/calvin-pretrain/${name}/${now:%Y-%m-%d}_${now:%H-%M-%S}_${seed}
+train_dataset_path: ${oc.env:DIWA_DATA_DIR}/expert/calvin-state-50/${env_name}/train.npz
+normalization_path: ${oc.env:DIWA_DATA_DIR}/expert/calvin-state-50/${env_name}/normalization.npz
+
+seed: 42
+device: cuda:0
+env_name: open_drawer
+env_type: calvin
+obs_dim: 51
+action_dim: 7
+denoising_steps: 20
+horizon_steps: 4
+cond_steps: 1
+act_steps: ${horizon_steps}
+
+comment: ""
+rgb_obs: false
+
+wandb:
+  entity: ${oc.env:DPPO_WANDB_ENTITY}
+  project: calvin-${env_name}-pretrain
+  run: ${comment}-${now:%H-%M-%S}_${name}
+  dir: ${logdir}
+
+train:
+  n_epochs: 8000
+  batch_size: 256
+  learning_rate: 1e-4
+  weight_decay: 1e-6
+  lr_scheduler:
+    first_cycle_steps: 10000
+    warmup_steps: 100
+    min_lr: 1e-5
+  epoch_start_ema: 20
+  update_ema_freq: 10
+  save_model_freq: 1000
+  val_freq: 1000
+
+model:
+  _target_: diwa.model.diffusion.diffusion.DiffusionModel
+  predict_epsilon: True
+  denoised_clip_value: 1.0
+  network:
+    _target_: diwa.model.diffusion.mlp_diffusion.DiffusionMLP
+    time_dim: 16
+    mlp_dims: [512, 512, 512]
+    residual_style: True
+    cond_dim: ${eval:'${obs_dim} * ${cond_steps}'}
+    horizon_steps: ${horizon_steps}
+    action_dim: ${action_dim}
+  horizon_steps: ${horizon_steps}
+  obs_dim: ${obs_dim}
+  action_dim: ${action_dim}
+  denoising_steps: ${denoising_steps}
+  device: ${device}
+
+ema:
+  decay: 0.995
+
+train_dataset:
+  _target_: diwa.dataset.sequence.StitchedSequenceDataset
+  dataset_path: ${train_dataset_path}
+  horizon_steps: ${horizon_steps}
+  cond_steps: ${cond_steps}
+  device: ${device}
+
+env_runner:
+  _target_: diwa.env.runner.calvin_statewm_rot6d.CALVINEnvRunner
+
+env:
+  n_envs: 1 # For pretraining, we only need one environment (do not change this)
+  n_render: 1
+  name: ${env_name}
+  env_type: ${env_type}
+  best_reward_threshold_for_success: 1
+  max_episode_steps: 72
+  save_video: true
+  load_scene_from_dataset: False
+  eval_scene_from_dataset: ${oc.env:DIWA_DATA_DIR}/expert/calvin-state-50/${env_name}/val_robot_obs_scene_obs_starts_1.npz

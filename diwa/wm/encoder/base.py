@@ -1,14 +1,18 @@
+from pathlib import Path
+
+
 class BaseWMObsEncoder:
     def __init__(self, ckpt_path, device, stats_path, wm_type):
-        if wm_type not in ["state", "hybrid", "vis"]:
-            raise ValueError(f"Unsupported world model type: {wm_type}")
+        assert wm_type in ["state", "hybrid", "vis"], "Invalid world model type specified."
+        assert Path(ckpt_path).exists(), f"Checkpoint path {ckpt_path} does not exist."
+        assert Path(stats_path).exists(), f"Stats path {stats_path} does not exist."
 
         if wm_type == "state":
-            from lumos.world_model.dreamer_v2_state import DreamerV2
+            from lumos.world_models.dreamer_v2_state import DreamerV2
         elif wm_type == "hybrid":
-            from lumos.world_model.dreamer_v2_hybrid import DreamerV2
+            from lumos.world_models.dreamer_v2_hybrid import DreamerV2
         elif wm_type == "vis":
-            from lumos.world_model.dreamer_v2 import DreamerV2
+            from lumos.world_models.dreamer_v2 import DreamerV2
 
         self.wm = DreamerV2.load_from_checkpoint(ckpt_path)
         self.wm.requires_grad_(False)

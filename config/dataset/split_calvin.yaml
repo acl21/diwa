@@ -1,0 +1,6 @@
+defaults:
+  - ../setup@_global_
+
+input_dir: ${root}/dataset/libero/libero_90_calvin_fmt_256_full/
+output_dir: ${root}/dataset/libero/libero_90_calvin_fmt_256/
+val_ratio: 0.05

@@ -12,7 +12,9 @@ import pickle
 import re
 from typing import Dict, List, Tuple, Union
 
+import hydra
 import numpy as np
+from omegaconf import DictConfig, OmegaConf
 from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
@@ -20,6 +22,12 @@ logger = logging.getLogger(__name__)
 
 def load_npz(filename: Path) -> Dict[str, np.ndarray]:
     return np.load(filename.as_posix())
+
+
+split_to_file = {
+    "training": "train",
+    "validation": "val",
+}
 
 
 class CALVINSkillExtractor:
@@ -35,7 +43,7 @@ class CALVINSkillExtractor:
         skill_name: str,
         data_to_extract: list,
         step_len: int,
-        features_path: str,
+        features_file_name: str,
     ):
         self.data_dir = Path(data_dir)
         self.skill_name = skill_name
@@ -43,7 +51,7 @@ class CALVINSkillExtractor:
         self.episode_lookup = self.load_file_indices(self.data_dir, self.skill_name)
         self.naming_pattern, self.n_digits = self.lookup_naming_pattern()
         self.step_len = step_len
-        feature_pkl = Path(features_path)
+        feature_pkl = self.data_dir / Path(features_file_name)
         assert feature_pkl.exists(), f"Feature file {feature_pkl} does not exist."
         self.features = pickle.load(open(feature_pkl, "rb"))
 
@@ -160,108 +168,84 @@ class CALVINSkillExtractor:
         return episode_lookup
 
 
-def make_dataset(args):
-    if not os.path.exists(args.save_dir):
-        os.makedirs(args.save_dir, exist_ok=True)
+@hydra.main(version_base="1.3", config_path="../../config/dataset", config_name="extract_expert_demos_feat")
+def make_dataset(cfg: DictConfig) -> None:
+    if not os.path.exists(cfg.output_dir):
+        os.makedirs(cfg.output_dir, exist_ok=True)
 
-    skill_list = args.skills
-    data_to_extract = args.fields_to_extract
-    assert "features" in data_to_extract, "Features must be included in the fields to extract."
-    assert "rel_actions" in data_to_extract, "Relative actions must be included in the fields to extract."
-    np.random.seed(args.seed)
-    for skill in tqdm(skill_list):
-        logger.info(f"Extracting data for skill: {skill}")
+    skill_list = cfg.skills_list
+    data_to_extract = cfg.fields_to_extract
+    assert "features" in data_to_extract, "features must be included in the fields to extract."
+    assert "rel_actions" in data_to_extract, "rel_actions must be included in the fields to extract."
+    np.random.seed(cfg.seed)
+    for split in ["training", "validation"]:
+        split_dir = os.path.join(cfg.input_dir, split)
+        if not os.path.exists(split_dir):
+            raise FileNotFoundError(f"Input directory {split_dir} does not exist.")
+        file_name = split_to_file[split]
+        logger.info(f"Processing split: {split}")
+        for skill in tqdm(skill_list):
+            logger.info(f"Skill: {skill}")
 
-        save_dir = os.path.join(args.save_dir, skill)
-        if not os.path.exists(save_dir):
-            os.makedirs(save_dir, exist_ok=True)
+            output_dir = os.path.join(cfg.output_dir, skill)
+            if not os.path.exists(output_dir):
+                os.makedirs(output_dir, exist_ok=True)
 
-        extractor = CALVINSkillExtractor(
-            data_dir=args.load_path,
-            skill_name=skill,
-            data_to_extract=data_to_extract,
-            step_len=args.step_len,
-            features_path=args.features_path,
-        )
+            extractor = CALVINSkillExtractor(
+                data_dir=split_dir,
+                skill_name=skill,
+                data_to_extract=data_to_extract,
+                step_len=cfg.step_len,
+                features_file_name=cfg.features_file_name,
+            )
 
-        states = np.array([])
-        actions = np.array([])
-        traj_lengths = np.array([])
+            states = np.array([])
+            actions = np.array([])
+            traj_lengths = np.array([])
 
-        if args.n_episodes < len(extractor):
-            # randomly sample a subset of episodes
-            ep_indices = np.random.choice(len(extractor), args.n_episodes, replace=False)
-        else:
-            # use all episodes
-            ep_indices = np.arange(len(extractor))
+            if cfg.n_episodes < len(extractor) and cfg.n_episodes > 0 and "val" not in split:
+                # randomly sample a subset of episodes
+                ep_indices = np.random.choice(len(extractor), cfg.n_episodes, replace=False)
+                logger.info(
+                    f"Extracting only {cfg.n_episodes} episodes for skill {skill} from {len(extractor)} total episodes."
+                )
+                # save episode indices for in a text file for quick access
+                with open(os.path.join(output_dir, f"{file_name}_ep_indices.txt"), "w") as f:
+                    for idx in sorted(ep_indices):
+                        f.write(f"{idx}\n")
+            else:
+                # use all episodes
+                ep_indices = np.arange(len(extractor))
+                logger.info(f"Extracting all {len(extractor)} episodes for skill {skill}.")
 
-        for idx in tqdm(ep_indices, desc=f"Processing skill: {skill}"):
-            episode = extractor[idx]
-            eps_len = int(episode["rel_actions"].shape[0])
+            for idx in tqdm(ep_indices, desc=f"Processing skill: {skill}"):
+                episode = extractor[idx]
+                eps_len = int(episode["rel_actions"].shape[0])
 
-            # WM Features
-            features = episode["features"]
+                # WM Features
+                features = episode["features"]
 
-            # Actions
-            rel_actions = episode["rel_actions"]
+                # Actions
+                rel_actions = episode["rel_actions"]
 
-            # Append to arrays
-            states = np.vstack((states, features)) if states.size else features
-            actions = np.vstack((actions, rel_actions)) if actions.size else rel_actions
-            traj_lengths = np.append(traj_lengths, eps_len)
+                # Append to arrays
+                states = np.vstack((states, features)) if states.size else features
+                actions = np.vstack((actions, rel_actions)) if actions.size else rel_actions
+                traj_lengths = np.append(traj_lengths, eps_len)
 
-        # save train dataset
-        np.savez(
-            os.path.join(save_dir, args.file_name),
-            states=states,
-            actions=actions,
-            traj_lengths=traj_lengths.astype(int),
-        )
+            # save in robomimic format
+            np.savez(
+                os.path.join(output_dir, f"{file_name}.npz"),
+                states=states,
+                actions=actions,
+                traj_lengths=traj_lengths.astype(int),
+            )
+    # Save the config file for reproducibility
+    OmegaConf.save(
+        cfg,
+        os.path.join(cfg.output_dir, "config.yaml"),
+    )
 
 
 if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--load_path",
-        type=str,
-        default="./data/calvin/task_D_D_rgb64_rot6d/training/",
-    )
-    parser.add_argument(
-        "--features_path",
-        type=str,
-        default="./data/calvin/task_D_D_rgb64_rot6d/training/cached_feats_vision_small_seq50_2M.pkl",
-    )
-    parser.add_argument(
-        "--save_dir",
-        type=str,
-        default="./data/expert/calvin-feat-vision-2M-25/",
-    )
-    parser.add_argument(
-        "--skills_list",
-        type=str,
-        nargs="+",
-        default=[
-            "open_drawer",
-            "move_slider_left",
-            "push_pink_block_right",
-            "lift_pink_block_table",
-            "close_drawer",
-            "turn_on_lightbulb",
-            "turn_off_lightbulb",
-            "move_slider_right",
-            "turn_on_led",
-            "turn_off_led",
-        ],
-    )
-    parser.add_argument("--fields_to_extract", type=str, nargs="+", default=["features", "rel_actions"])
-    parser.add_argument("--n_episodes", type=int, default=50)  # use -1 for all episodes
-    parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--step_len", type=int, default=1)
-    parser.add_argument("--file_name", type=str, default="train.npz")  # with extension
-    args = parser.parse_args()
-
-    print(args)
-
-    make_dataset(args)
+    make_dataset()
