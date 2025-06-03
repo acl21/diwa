@@ -2,8 +2,8 @@ defaults:
   - ../setup@_global_
 
 input_dir: ${root}/dataset/calvin/task_D_D_rgb64_rot6d/
-output_dir: ${root}/dataset/expert/calvin-feat-1300K-50/
-features_file_name: visionwm_features1300K.pkl # assuming this file exists in both training and validation directories
+output_dir: ${root}/dataset/expert/calvin-feat-50/
+features_file_name: visionwm_features.pkl # assuming this file exists in both training and validation directories
 skills_list: ["open_drawer", "close_drawer", "move_slider_left", "move_slider_right", "turn_on_lightbulb", "turn_off_lightbulb", "turn_on_led", "turn_off_led"]
 fields_to_extract: ["features", "rel_actions"]
 n_episodes: 50 # Randomly chosen, use -1 for all episodes
