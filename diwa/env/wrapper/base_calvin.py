@@ -247,13 +247,13 @@ class CALVINBaseWrapper(PlayTableSimEnv):
         rgb_static = resize_image(rgb_static, cv2.INTER_AREA, resolution=size)
         # H x W x C -> C x H x W
         rgb_static = np.transpose(rgb_static, (2, 0, 1))
+
         rgb_gripper = rgb_obs["rgb_gripper"]
         rgb_gripper = resize_image(rgb_gripper, cv2.INTER_AREA, resolution=size)
         # H x W x C -> C x H x W
         rgb_gripper = np.transpose(rgb_gripper, (2, 0, 1))
-        # Stack the images by C
-        rgb = np.concatenate([rgb_static, rgb_gripper], axis=0)
-        return rgb
+
+        return rgb_static, rgb_gripper
 
     def render(self):
         rgb_obs, depth_obs = self.get_camera_obs()

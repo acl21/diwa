@@ -1,5 +1,6 @@
 import logging
 
+import cv2
 import gym
 import numpy as np
 
@@ -54,7 +55,8 @@ class CALVINImageWrapper(CALVINBaseWrapper):
         if self.normalize:
             robot_obs = self.normalize_obs(robot_obs)
 
-        image = self.get_rgb_obs(size=64)
+        rgb_static, rgb_gripper = self.get_rgb_obs(size=64)
+        image = np.concatenate([rgb_static, rgb_gripper], axis=0)  # C x H x W
 
         obs = {}
         obs["state"] = robot_obs

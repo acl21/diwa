@@ -61,7 +61,14 @@ class CALVINEnvRunner(object):
 
             # WM Encoder
             if wme is not None:
-                prev_obs_venv["state"] = np.expand_dims(np.expand_dims(prev_obs_venv["state"][-1, :], 0), 0)
+                if type(prev_obs_venv["state"]) is not dict:
+                    prev_obs_venv["state"] = np.expand_dims(np.expand_dims(prev_obs_venv["state"][-1, :], 0), 0)
+                else:
+                    for key in prev_obs_venv["state"]:
+                        prev_obs_venv["state"][key] = np.expand_dims(
+                            np.expand_dims(prev_obs_venv["state"][key][-1, :], 0), 0
+                        )
+
                 wm_features, out_state = wme.get_zero_wm_features(prev_obs_venv["state"], device)
                 prev_obs_venv["state"] = wm_features.cpu().numpy()
                 in_state = out_state
@@ -93,8 +100,13 @@ class CALVINEnvRunner(object):
 
                 # WM Encoder
                 if wme is not None:
+                    if type(obs_venv) is not dict:
+                        obs_venv = np.expand_dims(obs_venv, 0)
+                    else:
+                        for key in obs_venv:
+                            obs_venv[key] = np.expand_dims(obs_venv[key], 0)
                     wm_features, out_state = wme.get_hist_wm_features(
-                        np.expand_dims(obs_venv, 0),
+                        obs_venv,
                         action_venv,
                         prev_done_venv,
                         in_state,

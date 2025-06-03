@@ -180,3 +180,7 @@ dataset/*
 .vscode/*
 **/outputs/*
 *.out
+
+# weights and bias
+wandb/
+**/wandb/

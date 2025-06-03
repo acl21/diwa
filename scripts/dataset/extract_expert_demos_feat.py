@@ -43,7 +43,7 @@ class CALVINSkillExtractor:
         skill_name: str,
         data_to_extract: list,
         step_len: int,
-        features_path: str,
+        features_file_name: str,
     ):
         self.data_dir = Path(data_dir)
         self.skill_name = skill_name
@@ -51,7 +51,7 @@ class CALVINSkillExtractor:
         self.episode_lookup = self.load_file_indices(self.data_dir, self.skill_name)
         self.naming_pattern, self.n_digits = self.lookup_naming_pattern()
         self.step_len = step_len
-        feature_pkl = Path(features_path)
+        feature_pkl = self.data_dir / Path(features_file_name)
         assert feature_pkl.exists(), f"Feature file {feature_pkl} does not exist."
         self.features = pickle.load(open(feature_pkl, "rb"))
 
@@ -196,7 +196,7 @@ def make_dataset(cfg: DictConfig) -> None:
                 skill_name=skill,
                 data_to_extract=data_to_extract,
                 step_len=cfg.step_len,
-                features_path=cfg.features_path,
+                features_file_name=cfg.features_file_name,
             )
 
             states = np.array([])

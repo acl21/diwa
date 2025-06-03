@@ -29,6 +29,7 @@ wandb:
   entity: ${oc.env:DPPO_WANDB_ENTITY}
   project: calvin-${env_name}-pretrain
   run: ${comment}-${now:%H-%M-%S}_${name}
+  dir: ${logdir}
 
 train:
   n_epochs: 8000
@@ -76,7 +77,7 @@ env_runner:
   _target_: diwa.env.runner.calvin_statewm_rot6d.CALVINEnvRunner
 
 env:
-  n_envs: 1
+  n_envs: 1 # For pretraining, we only need one environment (do not change this)
   n_render: 1
   name: ${env_name}
   env_type: ${env_type}

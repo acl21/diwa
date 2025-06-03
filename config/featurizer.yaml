@@ -1,0 +1,10 @@
+defaults:
+  - setup
+  - ../lumos/config/datamodule@datamodule: static_gripper_cam
+  - ../lumos/config/world_model@world_model: dreamer_v2
+  - _self_
+
+exp_dir: ${wm_chk_dir}
+wm_chk_dir: /path/to/your/model/checkpoint/X.ckpt
+output_file: "visionwm_features.pkl"
+device: 0
