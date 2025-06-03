@@ -16,8 +16,8 @@ class VisionWMWrapper(BaseWMWrapper, VisionWMObsEncoder):
         rew_cls_path="",
         rew_cls_input_dim=2048,
     ):
-        super(VisionWMObsEncoder).__init__(ckpt_path, device, stats_path)
-        super(BaseWMWrapper, self).__init__(temperature, skill, device)
+        VisionWMObsEncoder.__init__(self, ckpt_path, device, stats_path)
+        BaseWMWrapper.__init__(self, temperature, skill, device)
         self.set_wm(self.wm)
         self.rewcls = RewardClassifier(input_dim=rew_cls_input_dim)
         self.rewcls.load_state_dict(torch.load(rew_cls_path))

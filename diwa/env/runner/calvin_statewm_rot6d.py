@@ -127,14 +127,14 @@ class CALVINEnvRunner(object):
             if self.n_render > 0:
                 if self.n_render == 1:
                     wandb.log(
-                        {"video": wandb.Video(options_venv[rand_ind]["video_path"])},
+                        {"video": wandb.Video(options_venv[rand_ind]["video_path"], format="mp4")},
                         step=epoch,
                         commit=False,
                     )
                 else:
                     for env_ind in range(self.n_render):
                         wandb.log(
-                            {f"video - {env_ind}": wandb.Video(options_venv[env_ind]["video_path"])},
+                            {f"video - {env_ind}": wandb.Video(options_venv[env_ind]["video_path"], format="mp4")},
                             step=epoch,
                             commit=False,
                         )

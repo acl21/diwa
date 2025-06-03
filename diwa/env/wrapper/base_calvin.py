@@ -109,7 +109,7 @@ class CALVINBaseWrapper(PlayTableSimEnv):
         scene_obs = np.array(scene_obs)
 
         # random sample scene obs
-        scene_obs = sample_random_scene_obs(scene_obs, self.skill_name, rand_block_pos, rand_block_orn)
+        scene_obs = sample_random_scene_obs(scene_obs, self.skill_name, size, rand_block_pos, rand_block_orn)
 
         return scene_obs
 

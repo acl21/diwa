@@ -15,8 +15,8 @@ class StateWMWrapper(BaseWMWrapper, StateWMObsEncoder):
         temperature=1.0,
         skill="open_drawer",
     ):
-        super(StateWMObsEncoder).__init__(ckpt_path, device, stats_path)
-        super(BaseWMWrapper, self).__init__(temperature, skill, device)
+        StateWMObsEncoder.__init__(self, ckpt_path, device, stats_path)
+        BaseWMWrapper.__init__(self, temperature, skill, device)
 
     def decode_latent(self, latent):
         dcd_state_obs = self.wm.decoder(latent)

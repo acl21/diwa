@@ -7,7 +7,7 @@ hydra:
 _target_: diwa.agent.pretrain.train_diffusion_agent.TrainDiffusionAgent
 
 name: ${env_name}_pre_diffusion_mlp_img_ta${horizon_steps}_td${denoising_steps}
-logdir: ${oc.env:DIWA_LOG_DIR}/calvin-pretrain/${name}/${now:%Y-%m-%d}_${now:%H-%M-%S}_${seed}
+logdir: ${oc.env:DIWA_LOG_DIR}/calvin-pretrain-img/${name}/${now:%Y-%m-%d}_${now:%H-%M-%S}_${seed}
 train_dataset_path: ${oc.env:DIWA_DATA_DIR}/expert/calvin-img-50/${env_name}/train.npz
 normalization_path: ${oc.env:DIWA_DATA_DIR}/expert/calvin-img-50/${env_name}/normalization.npz
 
@@ -114,5 +114,5 @@ env:
   best_reward_threshold_for_success: 1
   max_episode_steps: 72
   save_video: true
-  load_scene_from_dataset: False
+  load_scene_from_dataset: null
   eval_scene_from_dataset: ${oc.env:DIWA_DATA_DIR}/expert/calvin-img-50/${env_name}/val_robot_obs_scene_obs_starts_1.npz

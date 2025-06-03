@@ -17,8 +17,8 @@ class HybridWMWrapper(BaseWMWrapper, HybridWMObsEncoder):
         rew_cls_path="",
         rew_cls_input_dim=2048,
     ):
-        super(HybridWMObsEncoder).__init__(ckpt_path, device, stats_path)
-        super(BaseWMWrapper, self).__init__(temperature, skill, device)
+        HybridWMObsEncoder.__init__(self, ckpt_path, device, stats_path)
+        BaseWMWrapper.__init__(self, temperature, skill, device)
         self.rewcls = RewardClassifier(input_dim=rew_cls_input_dim)
         self.rewcls.load_state_dict(torch.load(rew_cls_path))
         self.rewcls.to(device)

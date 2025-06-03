@@ -15,8 +15,8 @@ class HybridWMWrapper(BaseWMWrapper, HybridWMObsEncoder):
         temperature=1.0,
         skill="open_drawer",
     ):
-        super(HybridWMObsEncoder).__init__(ckpt_path, device, stats_path)
-        super(BaseWMWrapper, self).__init__(temperature, skill, device)
+        HybridWMObsEncoder.__init__(self, ckpt_path, device, stats_path)
+        BaseWMWrapper.__init__(self, temperature, skill, device)
 
     def decode_latent(self, latent):
         dcd_img_s, dcd_img_g, dcd_state_obs = self.wm.decoder(latent)
