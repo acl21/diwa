@@ -3,15 +3,10 @@ import os
 
 import numpy as np
 import torch
+
 import wandb
 
 log = logging.getLogger(__name__)
-
-
-def transpose_tensor(tensor):
-    """transposes batch and time dimension
-    (B, T, ...) -> (T, B, ...)"""
-    return torch.transpose(tensor, 0, 1)
 
 
 class CALVINEnvRunner(object):
@@ -58,19 +53,25 @@ class CALVINEnvRunner(object):
             if i % 10 == 0:
                 print(f"Processed episode {i} of {total_episodes_eval}")
             prev_obs_venv = {}
-            prev_obs_venv, _ = venv.reset(
+            prev_obs_venv["state"], _ = venv.reset(
                 robot_obs=robot_obs[i],
                 scene_obs=scene_obs[i],
                 options=options_venv[i],
             )
 
+            # WM Encoder
+            if wme is not None:
+                prev_obs_venv["state"] = np.expand_dims(np.expand_dims(prev_obs_venv["state"][-1, :], 0), 0)
+                wm_features, out_state = wme.get_zero_wm_features(prev_obs_venv["state"], device)
+                prev_obs_venv["state"] = wm_features.cpu().numpy()
+                in_state = out_state
+                # prev_done_venv = np.zeros((self.n_envs)).astype(bool)
+                prev_done_venv = np.zeros((1)).astype(bool)
+
             for step in range(self.n_steps):
                 # Select action
                 with torch.no_grad():
-                    cond = {
-                        "state": torch.from_numpy(prev_obs_venv["state"]).unsqueeze(0).float().to(device),
-                        "rgb": torch.from_numpy(prev_obs_venv["rgb"]).unsqueeze(0).float().to(device),
-                    }
+                    cond = {"state": torch.from_numpy(prev_obs_venv["state"]).float().to(device)}
                     samples = model(cond=cond, deterministic=True)
                     output_venv = samples.trajectories.cpu().numpy()  # n_env x horizon x act
                 action_venv = output_venv[:, : self.act_steps]
@@ -90,7 +91,20 @@ class CALVINEnvRunner(object):
                     episode_lengths.append(step)
                     break
 
-                prev_obs_venv = obs_venv
+                # WM Encoder
+                if wme is not None:
+                    wm_features, out_state = wme.get_hist_wm_features(
+                        np.expand_dims(obs_venv, 0),
+                        action_venv,
+                        prev_done_venv,
+                        in_state,
+                        device,
+                    )
+                    prev_done_venv = np.array(done_venv).astype(bool)
+                    obs_venv = wm_features.cpu().numpy()
+                    in_state = out_state
+
+                prev_obs_venv = {"state": obs_venv}
 
         avg_episode_reward = np.sum(episode_rewards) / total_episodes_eval
         avg_episode_length = np.sum(episode_lengths) / total_episodes_eval
@@ -113,14 +127,14 @@ class CALVINEnvRunner(object):
             if self.n_render > 0:
                 if self.n_render == 1:
                     wandb.log(
-                        {"video": wandb.Video(options_venv[rand_ind]["video_path"])},
+                        {"video": wandb.Video(options_venv[rand_ind]["video_path"], format="mp4")},
                         step=epoch,
                         commit=False,
                     )
                 else:
                     for env_ind in range(self.n_render):
                         wandb.log(
-                            {f"video - {env_ind}": wandb.Video(options_venv[env_ind]["video_path"])},
+                            {f"video - {env_ind}": wandb.Video(options_venv[env_ind]["video_path"], format="mp4")},
                             step=epoch,
                             commit=False,
                         )

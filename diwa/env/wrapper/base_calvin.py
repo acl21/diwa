@@ -63,7 +63,6 @@ class CALVINBaseWrapper(PlayTableSimEnv):
         self.skill_name = skill_name
 
         self.action_space = self.get_action_space()
-        self.observation_space = self.get_observation_space()
         self.tasks = hydra.utils.instantiate(cfg.tasks)
         self.max_episode_steps = max_episode_steps
         self.video_writer = None
@@ -109,7 +108,7 @@ class CALVINBaseWrapper(PlayTableSimEnv):
         scene_obs = np.array(scene_obs)
 
         # random sample scene obs
-        scene_obs = sample_random_scene_obs(scene_obs, self.skill_name, rand_block_pos, rand_block_orn)
+        scene_obs = sample_random_scene_obs(scene_obs, self.skill_name, size, rand_block_pos, rand_block_orn)
 
         return scene_obs
 
@@ -145,41 +144,6 @@ class CALVINBaseWrapper(PlayTableSimEnv):
     def unnormalize_action(self, action):
         action = (action + 1) / 2  # [-1, 1] -> [0, 1]
         return action * (self.action_max - self.action_min) + self.action_min
-
-    def reset(
-        self,
-        robot_obs=None,
-        scene_obs=None,
-        options={},
-        seed=None,
-        return_info=False,
-    ):
-        # Close video if exists
-        if self.video_writer is not None:
-            self.video_writer.close()
-            self.video_writer = None
-
-        # Start video if specified
-        if options is not None:
-            if "video_path" in options:
-                self.video_writer = imageio.get_writer(options["video_path"], fps=30)
-
-        if seed is not None:
-            self.seed(seed=seed)
-        if robot_obs is None and scene_obs is None:
-            rand_scene_idx = np.random.randint(0, len(self.robot_obs))
-            robot_obs = self.robot_obs[rand_scene_idx]
-            scene_obs = self.scene_obs[rand_scene_idx]
-        if robot_obs.shape[0] > 15 or scene_obs.shape[0] > 24:
-            robot_obs = replace_rot6d_with_euler(self.rot_transformer, robot_obs, type="robot")
-            scene_obs = replace_rot6d_with_euler(self.rot_transformer, scene_obs, type="scene")
-
-        super().reset(robot_obs, scene_obs)
-
-        self.start_info = self.get_info()
-
-        self._t = 0
-        return self.get_obs(), None
 
     def _success(self):
         """Returns a boolean indicating if the task was performed correctly"""
@@ -241,6 +205,42 @@ class CALVINBaseWrapper(PlayTableSimEnv):
 
         return obs, reward, terminated, truncated, info
 
+    def reset(
+        self,
+        robot_obs=None,
+        scene_obs=None,
+        options={},
+        seed=None,
+        return_info=False,
+    ):
+        # Close video if exists
+        if self.video_writer is not None:
+            self.video_writer.close()
+            self.video_writer = None
+
+        # Start video if specified
+        if options is not None:
+            if "video_path" in options:
+                self.video_writer = imageio.get_writer(options["video_path"], fps=30)
+
+        if seed is not None:
+            self.seed(seed=seed)
+        if robot_obs is None and scene_obs is None:
+            rand_scene_idx = np.random.randint(0, len(self.robot_obs))
+            robot_obs = self.robot_obs[rand_scene_idx]
+            scene_obs = self.scene_obs[rand_scene_idx]
+        if robot_obs.shape[0] > 15 or scene_obs.shape[0] > 24:
+            robot_obs = replace_rot6d_with_euler(self.rot_transformer, robot_obs, type="robot")
+            scene_obs = replace_rot6d_with_euler(self.rot_transformer, scene_obs, type="scene")
+
+        super().reset(robot_obs, scene_obs)
+
+        self.start_info = self.get_info()
+
+        self._t = 0
+        obs = self.get_obs()
+        return obs, None
+
     def get_rgb_obs(self, size=64):
         rgb_obs, _ = self.get_camera_obs()
         rgb_static = rgb_obs["rgb_static"]
@@ -261,7 +261,8 @@ class CALVINBaseWrapper(PlayTableSimEnv):
             frame = rgb_obs[self.render_camera_name]
         else:
             frame = depth_obs[self.render_camera_name]
-        return cv2.resize(frame, self.render_hw, interpolation=cv2.INTER_AREA)
+        frame = resize_image(frame, cv2.INTER_AREA, resolution=self.render_hw[0])
+        return frame
 
     @staticmethod
     def set_egl_device(device):

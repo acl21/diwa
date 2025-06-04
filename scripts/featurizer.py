@@ -102,7 +102,7 @@ def extract_features(world_model, data_loader, dataset, cfg):
     rel_acts = np.zeros((len(dataset), cfg.datamodule.action_space), dtype=np.float32)
     resets = np.zeros((len(dataset), 1), dtype=bool)
     frames = np.zeros((len(dataset), 1), dtype=int)
-    robot_obs = np.zeros((len(dataset), 18), dtype=np.float32)
+    robot_obs = np.zeros((len(dataset), cfg.world_model.robot_dim), dtype=np.float32)
 
     data_dict = {}
 
@@ -128,7 +128,6 @@ def extract_features(world_model, data_loader, dataset, cfg):
                 batch["rgb_obs"]["rgb_static"],
                 batch["robot_obs"],
                 batch["actions"]["pre_actions"],
-                batch["state_info"]["pre_robot_obs"],
                 batch["reset"],
                 in_state,
                 batch["rgb_obs"]["rgb_gripper"],
@@ -143,7 +142,6 @@ def extract_features(world_model, data_loader, dataset, cfg):
                     batch["rgb_obs"]["rgb_static"],
                     batch["rgb_obs"]["rgb_gripper"],
                     batch["robot_obs"],
-                    batch["state_info"]["pre_robot_obs"],
                 )
                 .cpu()
                 .numpy()
@@ -152,7 +150,7 @@ def extract_features(world_model, data_loader, dataset, cfg):
             rel_acts[idxs] = batch["actions"]["rel_actions"].cpu().numpy().squeeze(0)
             resets[idxs] = batch["reset"].cpu().numpy().squeeze(0)
             frames[idxs] = batch["frame"].cpu().numpy().squeeze(0)
-            robot_obs[idxs] = batch["state_info"]["robot_obs"].cpu().numpy().squeeze(0)
+            robot_obs[idxs] = batch["robot_obs"].cpu().numpy().squeeze(0)
 
             for idx in idxs:
                 data_dict[int(frames[idx])] = {
@@ -168,7 +166,7 @@ def extract_features(world_model, data_loader, dataset, cfg):
         pickle.dump(data_dict, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 
-def obs_to_zero_feature(wm, rgb_s, rgb_g, proprio, robot_obs):
+def obs_to_zero_feature(wm, rgb_s, rgb_g, proprio):
     bz = rgb_s.size(1)
     zero_action = torch.zeros((1, bz, 7)).to(wm.device)
     zero_action[:, :, -1] = 1.0
@@ -178,7 +176,6 @@ def obs_to_zero_feature(wm, rgb_s, rgb_g, proprio, robot_obs):
         rgb_s,
         proprio,
         zero_action,
-        robot_obs,
         true_reset,
         wm.rssm_core.init_state(bz),
         rgb_g,

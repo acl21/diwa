@@ -6,8 +6,8 @@ hydra:
     dir: ${logdir}
 _target_: diwa.agent.pretrain.train_diffusion_agent.TrainDiffusionAgent
 
-name: ${env_name}_pre_diffusion_mlp_img_ta${horizon_steps}_td${denoising_steps}
-logdir: ${oc.env:DIWA_LOG_DIR}/calvin-pretrain/${name}/${now:%Y-%m-%d}_${now:%H-%M-%S}_${seed}
+name: ${env_name}_pre_diffusion_mlp_feat_ta${horizon_steps}_td${denoising_steps}
+logdir: ${oc.env:DIWA_LOG_DIR}/calvin-pretrain-feat/${name}/${now:%Y-%m-%d}_${now:%H-%M-%S}_${seed}
 train_dataset_path: ${oc.env:DIWA_DATA_DIR}/expert/calvin-feat-1300K-50/${env_name}/train.npz
 normalization_path: null
 
@@ -75,7 +75,7 @@ train_dataset:
 
 
 env_runner:
-  _target_: diwa.env.runner.calvin_visionwm_rot6d.CALVINEnvRunner
+  _target_: diwa.env.runner.calvin_visionwm.CALVINEnvRunner
 
 wm:
   _target_: diwa.wm.encoder.visionwm.VisionWMObsEncoder
@@ -91,7 +91,7 @@ env:
   best_reward_threshold_for_success: 1
   max_episode_steps: 72
   save_video: true
-  load_scene_from_dataset: False
+  load_scene_from_dataset: null
   eval_scene_from_dataset: ${oc.env:DIWA_DATA_DIR}/expert/calvin-state-50/${env_name}/val_robot_obs_scene_obs_starts_1.npz
   # The following multistep parameters are important so that we can estimate 
   # a more accurate WM state from the history of observations & actions

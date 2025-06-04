@@ -1,0 +1,23 @@
+defaults:
+  - ../setup@_global_
+
+skill_name: "open_drawer"
+device: "cuda:0"
+logdir: ${root}/logs/rewcls/${skill_name}/
+comment: ""
+wandb:
+  entity: ${oc.env:DIWA_WANDB_ENTITY}
+  project: reward-classifier
+  run: ${comment}-contrastive-${now:%H-%M-%S}
+  dir: ${logdir}
+# dataset paths
+train_data_path: ${root}/dataset/expert/calvin-feat-1300K-50/${skill_name}/rewcls_train_mix_balanced_10.npz
+val_data_path: ${root}/dataset/expert/calvin-feat-1300K-50/${skill_name}/rewcls_val.npz
+model_out_dir: ${logdir}
+model_save_name: "model.pth"
+# hyperparameters
+batch_size: 32
+num_epochs: 100
+lr: 1e-6
+temperature: 0.5
+alpha: 0.5

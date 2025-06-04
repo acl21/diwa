@@ -9,7 +9,7 @@ import wandb
 log = logging.getLogger(__name__)
 
 
-class CALVINEnvRunner(object):
+class LIBEROEnvRunner(object):
     def __init__(self):
         self.n_envs = None
         self.n_render = None
@@ -37,9 +37,8 @@ class CALVINEnvRunner(object):
 
         episode_rewards = []
         episode_lengths = []
-        robot_obs = venv.robot_obs
-        scene_obs = venv.scene_obs
-        total_episodes_eval = robot_obs.shape[0]
+        init_states = venv.init_states
+        total_episodes_eval = init_states.shape[0]
         options_venv = [{} for _ in range(total_episodes_eval)]
         rand_ind = np.random.randint(0, total_episodes_eval)
         options_venv[rand_ind] = {
@@ -54,14 +53,20 @@ class CALVINEnvRunner(object):
                 print(f"Processed episode {i} of {total_episodes_eval}")
             prev_obs_venv = {}
             prev_obs_venv["state"], _ = venv.reset(
-                robot_obs=robot_obs[i],
-                scene_obs=scene_obs[i],
+                init_states=init_states[i],
                 options=options_venv[i],
             )
 
             # WM Encoder
             if wme is not None:
-                prev_obs_venv["state"] = np.expand_dims(np.expand_dims(prev_obs_venv["state"][-1, :], 0), 0)
+                if type(prev_obs_venv["state"]) is not dict:
+                    prev_obs_venv["state"] = np.expand_dims(np.expand_dims(prev_obs_venv["state"][-1, :], 0), 0)
+                else:
+                    for key in prev_obs_venv["state"]:
+                        prev_obs_venv["state"][key] = np.expand_dims(
+                            np.expand_dims(prev_obs_venv["state"][key][-1, :], 0), 0
+                        )
+
                 wm_features, out_state = wme.get_zero_wm_features(prev_obs_venv["state"], device)
                 prev_obs_venv["state"] = wm_features.cpu().numpy()
                 in_state = out_state
@@ -93,8 +98,13 @@ class CALVINEnvRunner(object):
 
                 # WM Encoder
                 if wme is not None:
+                    if type(obs_venv) is not dict:
+                        obs_venv = np.expand_dims(obs_venv, 0)
+                    else:
+                        for key in obs_venv:
+                            obs_venv[key] = np.expand_dims(obs_venv[key], 0)
                     wm_features, out_state = wme.get_hist_wm_features(
-                        np.expand_dims(obs_venv, 0),
+                        obs_venv,
                         action_venv,
                         prev_done_venv,
                         in_state,
@@ -127,14 +137,14 @@ class CALVINEnvRunner(object):
             if self.n_render > 0:
                 if self.n_render == 1:
                     wandb.log(
-                        {"video": wandb.Video(options_venv[rand_ind]["video_path"])},
+                        {"video": wandb.Video(options_venv[rand_ind]["video_path"], format="mp4")},
                         step=epoch,
                         commit=False,
                     )
                 else:
                     for env_ind in range(self.n_render):
                         wandb.log(
-                            {f"video - {env_ind}": wandb.Video(options_venv[env_ind]["video_path"])},
+                            {f"video - {env_ind}": wandb.Video(options_venv[env_ind]["video_path"], format="mp4")},
                             step=epoch,
                             commit=False,
                         )

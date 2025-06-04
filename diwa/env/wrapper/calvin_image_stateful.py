@@ -36,6 +36,8 @@ class CALVINImageWrapper(CALVINBaseWrapper):
             device=device,
         )
 
+        self.observation_space = self.get_observation_space()
+
     def get_observation_space(self):
         """Returns the observation space for the environment based on the skill"""
         obs_dim = 51  # 18 + 33
@@ -49,7 +51,7 @@ class CALVINImageWrapper(CALVINBaseWrapper):
         )
 
     def get_obs(self):
-        state_obs = super().get_state_obs()
+        state_obs = self.get_state_obs()
         robot_obs = state_obs["robot_obs"]
         scene_obs = state_obs["scene_obs"]
         robot_obs = replace_euler_with_rot6d(self.rot_transformer, robot_obs, type="robot")
