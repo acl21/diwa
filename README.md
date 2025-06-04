@@ -8,7 +8,7 @@
 
 <img src="https://github.com/acl21/diwa/blob/main/docs/diwa_overview.png" alt="drawing" width="100%"/>
 
-> DiWA is ...
+> DiWA is an algorithmic framework for fine-tuning diffusion-based policies inside frozen world models learned from play data.
 
 ## Installation
 1. To begin, clone this repository locally
@@ -26,7 +26,7 @@ source scripts/set_path.sh
 ```bash
 git submodule update --init --recursive
 ```
-- **Submodule:** lumos
+- **Submodule:** `lumos`
 
     This repository includes `https://github.com/nematoli/lumos/` as a submodule for all things related to world model training and featurizing, tracking its `diwa` branch. If you want to inspect or update the submodule manually:
     ```bash
@@ -34,13 +34,16 @@ git submodule update --init --recursive
     git checkout diwa
     git pull origin diwa
     ```
-- **Submodule:** calvin_env
+- **Submodule:** `calvin_env`
 
-    This repository also inclues `https://github.com/mees/calvin_env/` as a submodule for simulation experiments, tracking its `main` branch.
+    This repository inclues `https://github.com/mees/calvin_env/` as a submodule for simulation experiments, tracking its `main` branch.
 
-- **(Optional) Submodule**: robot_io
+- **(Optional) Submodule**: `robot_io`
     
-    This repository also inclues `https://github.com/acl21/robot_io/` as a submodule for real-world experiments, tracking its `main` branch.
+    This repository inclues `https://github.com/acl21/robot_io/` as a submodule for real-world experiments, tracking its `main` branch.
+
+- **Submoudle:** `LIBERO`
+    This repository includes `https://github.com/Lifelong-Robot-Learning/LIBERO` as a submodule for simulation experiments, tracking its `master` branch. 
 
 4. Create and activate the conda environment, then install the dependencies:
 
@@ -56,10 +59,10 @@ sh install.sh
 To download and preprocess datasets for DiWA, please follow [this guide](dataset/README.md).
 
 ### 1. World Model
-**Note**: You may skip world model training if you would like to use the default checkpoints (available for download).
+**Note**: (TODO) You may skip world model training if you would like to use the default checkpoints (available for download).
 
 #### 1.1 Training
-Before running the following, see [this](dataset/README.md#play-data-for-world-model-training)
+Before running the following, see [this](dataset/README.md#1-play-data-for-world-model-training).
 
 ```bash
 python scripts/train_wm.py trainer.devices=[<GPU-ID>]
@@ -68,17 +71,17 @@ python scripts/train_wm.py trainer.devices=[<GPU-ID>]
 ```bash
 python scripts/featurizer.py device=<GPU-ID>
 ```
-#### (Optional) World Model Tests
+#### 1.3 (Optional) World Model Tests
 ```bash
 TODO
 ```
 ### 2. Diffusion Policy Training
-**Note**: You may skip pre-training if you would like to use the default checkpoint (available for download) for fine-tuning. Before running the following, see [this](dataset/README.md#expert-data-for-diffusion-policy-training). All the configs for pre-training can be found under `config/<env>/pretrain/`.
+**Note**: (TODO) You may skip pre-training if you would like to use the default checkpoint (available for download) for fine-tuning. Before running the following, see [this](dataset/README.md#2-expert-data-for-diffusion-policy-training). All the configs for pre-training can be found under `config/<env>/pretrain/`.
 ```bash
 python scripts/run.py --config-name=pre_diffusion_mlp_feat_vision --config-dir=config/calvin/pretrain/close_drawer
 ```
 ### 3. Reward Estimation
-Before running the following, see [this](dataset/README.md#class-balanced-data-for-reward-classifier-training).
+Before running the following, see [this](dataset/README.md#3-class-balanced-data-for-reward-classifier-training).
 ```bash
 python scripts/rewcls/train_contrastive.py
 ```
@@ -92,5 +95,8 @@ python scripts/run.py --config-name=ft_mb_ppo_diffusion_mlp_feat_vision --config
 This repository is released under the MIT license. See [LICENSE](LICENSE).
 
 ## Acknowledgement
-* [DPPO, Zen et al.](https://github.com/irom-princeton/dppo): Code base
-* [LUMOS, Nematollahi et al.](https://github.com/nematoli/lumos): All things world model
+* [DPPO, Zen et al.](https://github.com/irom-princeton/dppo): Code base on top of which DiWA was built.
+* [LUMOS, Nematollahi et al.](https://github.com/nematoli/lumos): Used for world model trainining and featurizing.
+* [CALVIN, Mees et al.](https://github.com/mees/calvin_env): Used for simulation experiments
+
+(TODO) See [this]() for a code attribution and acknowlegements.

@@ -80,7 +80,7 @@ def stack_last_n_obs(all_obs, n_steps):
     return result
 
 
-class CALVINMultiStep(gym.Wrapper):
+class MultiStepWrapper(gym.Wrapper):
     def __init__(
         self,
         env,
@@ -114,15 +114,24 @@ class CALVINMultiStep(gym.Wrapper):
         options: dict = {},
         robot_obs: Optional[np.ndarray] = None,
         scene_obs: Optional[np.ndarray] = None,
+        init_states: Optional[np.ndarray] = None,
     ):
         """Resets the environment."""
-        obs, info = self.env.reset(
-            seed=seed,
-            options=options,
-            return_info=return_info,
-            robot_obs=robot_obs,
-            scene_obs=scene_obs,
-        )
+        if init_states is not None:
+            obs, info = self.env.reset(
+                seed=seed,
+                options=options,
+                return_info=return_info,
+                init_state=init_states,
+            )
+        else:
+            obs, info = self.env.reset(
+                seed=seed,
+                options=options,
+                return_info=return_info,
+                robot_obs=robot_obs,
+                scene_obs=scene_obs,
+            )
         self.obs = deque([obs], maxlen=max(self.n_obs_steps + 1, self.n_action_steps))
         if self.prev_action:
             self.action = deque([self._single_action_space.sample()], maxlen=self.n_obs_steps)

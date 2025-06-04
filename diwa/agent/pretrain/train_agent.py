@@ -16,10 +16,11 @@ import hydra
 import numpy as np
 from omegaconf import OmegaConf
 import torch
+
 import wandb
 
 log = logging.getLogger(__name__)
-from diwa.env.utils import make_async_calvin
+from diwa.env.utils import make_calvin_env, make_libero_env
 from diwa.utils.scheduler import CosineAnnealingWarmupRestarts
 
 DEVICE = "cuda:0"
@@ -90,11 +91,10 @@ class PreTrainAgent:
 
         # Make vectorized env
         if self.env_type == "calvin":
-            self.venv, self.env = make_async_calvin(
+            self.venv, self.env = make_calvin_env(
                 cfg.env.name,
                 env_type=self.env_type,
                 num_envs=cfg.env.n_envs,
-                asynchronous=True,
                 max_episode_steps=cfg.env.max_episode_steps,
                 calvin_env_cfg=cfg.get("env_cfg", None),
                 normalization_path=cfg.get("normalization_path", None),
@@ -109,7 +109,17 @@ class PreTrainAgent:
                 stacked_obs=cfg.get("stacked_obs", False),
             )
         elif self.env_type == "libero":
-            pass  # TODO: Implement libero env
+            self.venv, self.env = make_libero_env(
+                cfg.env.name,
+                normalization_path=cfg.get("normalization_path", None),
+                max_episode_steps=cfg.env.max_episode_steps,
+                num_envs=cfg.env.n_envs,
+                n_obs_steps=cfg.env.get("n_obs_steps", 1),
+                n_action_steps=cfg.env.get("n_action_steps", 4),
+                offline_method=cfg.get("offline_method", False),
+                rgb_obs=cfg.get("rgb_obs", False),
+                stacked_obs=cfg.get("stacked_obs", False),
+            )
         elif self.env_type == "real":
             # For real world environments, one could use the world model to simulate
             self.venv = None
