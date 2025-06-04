@@ -46,7 +46,7 @@ wm:
 
 env:
   n_envs: 50
-  n_render: 1
+  n_render: -1 # -1 means render every eval episode
   name: ${env_name}
   env_type: ${env_type}
   best_reward_threshold_for_success: 1
