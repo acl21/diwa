@@ -49,17 +49,45 @@ class TrainMBPPODiffusionAgent(TrainPPOAgent):
 
         assert self.logprob_batch_size % self.n_envs == 0, "logprob_batch_size must be divisible by n_envs"
 
-    def get_reset_obs(self, n_envs):
+    def get_init_obs(self, n_envs):
+        """
+        Get initial observations for the environment.
+        This function is used to reset a dummy environment and get the initial observations.
+        """
+        if self.env_type == "calvin":
+            obs = self.get_init_obs_calvin(n_envs)
+        elif self.env_type == "libero":
+            obs = self.get_init_obs_libero(n_envs)
+        else:
+            raise ValueError(f"Unknown environment type: {self.env_type}")
+        return obs
+
+    def get_init_obs_calvin(self, n_envs):
         obs = [self.venv.reset()[0] for _ in range(n_envs)]
         robot_obs = np.array([ob["robot_obs"][-1] for ob in obs])
         rgb_static = np.array([ob["rgb_static"][-1] for ob in obs])
         rgb_gripper = np.array([ob["rgb_gripper"][-1] for ob in obs])
 
-        return {
+        obs = {
             "robot_obs": robot_obs,
             "rgb_static": rgb_static,
             "rgb_gripper": rgb_gripper,
         }
+        return obs
+
+    def get_init_obs_libero(self, n_envs):
+        # generate n_envs random indices
+        rand_indices = np.random.choice(np.arange(self.env_init_obs["robot_obs"].shape[0]), n_envs, replace=True)
+        robot_obs = self.env_init_obs["robot_obs"][rand_indices]
+        rgb_statics = self.env_init_obs["rgb_statics"][rand_indices]
+        rgb_grippers = self.env_init_obs["rgb_grippers"][rand_indices]
+
+        obs = {
+            "robot_obs": robot_obs,
+            "rgb_static": rgb_statics,
+            "rgb_gripper": rgb_grippers,
+        }
+        return obs
 
     def get_terminated_from_reward(self, reward):
         terminated = np.zeros_like(reward)
@@ -110,8 +138,7 @@ class TrainMBPPODiffusionAgent(TrainPPOAgent):
                 rgb_gripper_trajs = np.zeros((self.n_steps, self.n_envs, 64, 64, 3))
 
                 # Initialize environment
-                # Only works with calvin
-                prev_obs_venv = self.get_reset_obs(self.n_envs)
+                prev_obs_venv = self.get_init_obs(self.n_envs)
                 wm_step_counter = np.zeros((self.n_envs)).astype(int)
                 firsts_trajs[0] = 1
 
@@ -171,7 +198,7 @@ class TrainMBPPODiffusionAgent(TrainPPOAgent):
 
                     # If an episode is done, reset environment for that env
                     if sum(done_venv) > 0:
-                        new_obs_venv = self.get_reset_obs(int(sum(done_venv)))
+                        new_obs_venv = self.get_init_obs(int(sum(done_venv)))
 
                         # WM Encoder
                         if self.wme is not None:
