@@ -156,7 +156,7 @@ def make_dataset(cfg: DictConfig) -> None:
     if not os.path.exists(cfg.output_dir):
         os.makedirs(cfg.output_dir, exist_ok=True)
 
-    skill_list = cfg.skills_list
+    skills_list = cfg.skills_list
     data_to_extract = cfg.fields_to_extract
     assert "robot_obs" in data_to_extract, "robot_obs must be in fields_to_extract"
     assert "scene_obs" in data_to_extract, "scene_obs must be in fields_to_extract"
@@ -168,7 +168,7 @@ def make_dataset(cfg: DictConfig) -> None:
             raise FileNotFoundError(f"Input directory {split_dir} does not exist.")
         file_name = split_to_file[split]
         logger.info(f"Processing split: {split}")
-        for skill in tqdm(skill_list):
+        for skill in tqdm(skills_list):
             logger.info(f"Skill: {skill}")
 
             output_dir = os.path.join(cfg.output_dir, skill)

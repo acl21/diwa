@@ -11,7 +11,7 @@ def balance_rewcls_dataset(cfg):
     Balances the rewcls dataset (by subsampling from each episode) for the reward classifier.
     Note: The dataset is already sorted (seq. of episode trajectories).
     """
-    for skill_name in cfg.skill_list:
+    for skill_name in cfg.skills_list:
         data_path = Path(cfg.rewcls_data_dir) / skill_name / f"{cfg.rewcls_data_name}.npz"
         data = np.load(data_path, allow_pickle=True)
 

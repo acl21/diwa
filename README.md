@@ -43,6 +43,7 @@ git submodule update --init --recursive
     This repository inclues `https://github.com/acl21/robot_io/` as a submodule for real-world experiments, tracking its `main` branch.
 
 - **Submoudle:** `LIBERO`
+    
     This repository includes `https://github.com/Lifelong-Robot-Learning/LIBERO` as a submodule for simulation experiments, tracking its `master` branch. 
 
 4. Create and activate the conda environment, then install the dependencies:
@@ -73,7 +74,7 @@ python scripts/featurizer.py device=<GPU-ID>
 ```
 #### 1.3 (Optional) World Model Tests
 ```bash
-TODO
+(TODO)
 ```
 ### 2. Diffusion Policy Training
 **Note**: (TODO) You may skip pre-training if you would like to use the default checkpoint (available for download) for fine-tuning. Before running the following, see [this](dataset/README.md#2-expert-data-for-diffusion-policy-training). All the configs for pre-training can be found under `config/<env>/pretrain/`.

@@ -1,7 +1,8 @@
 defaults:
+  - _self_
   - ../setup@_global_
 
-skill_list: ["open_drawer", "close_drawer", "move_slider_left", "move_slider_right", "turn_on_lightbulb", "turn_off_lightbulb", "turn_on_led", "turn_off_led"]
+skills_list: ["open_drawer", "close_drawer", "move_slider_left", "move_slider_right", "turn_on_lightbulb", "turn_off_lightbulb", "turn_on_led", "turn_off_led"]
 n_random: 10 # Samples 10 random timesteps from each episode
 rewcls_data_dir: ${root}/dataset/expert/calvin-feat-1300K-50/
 rewcls_data_name: "rewcls_train_mix"

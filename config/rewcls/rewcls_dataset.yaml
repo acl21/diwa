@@ -1,14 +1,15 @@
 defaults:
+  - _self_
   - ../setup@_global_
 
-skill_list: ["open_drawer", "close_drawer", "move_slider_left", "move_slider_right", "turn_on_lightbulb", "turn_off_lightbulb", "turn_on_led", "turn_off_led"]
+skills_list: ["open_drawer", "close_drawer", "move_slider_left", "move_slider_right", "turn_on_lightbulb", "turn_off_lightbulb", "turn_on_led", "turn_off_led"]
 device: "cuda:0"
 # dataset paths
-feat_data_dir: ${root}/dataset/expert/calvin-feat-1300K-50/
-state_data_dir: ${root}/dataset/expert/calvin-state-raw-50/
+feat_data_dir: ${root}/dataset/expert/calvin-feat-50/
+rewards_data_dir: ${root}/dataset/expert/calvin-state-raw-50/
 data_out_dir: ${feat_data_dir}
 data_out_prefix: "rewcls" 
-# wm
+
 wm:
   type: vis
   ckpt_path: ${oc.env:DIWA_LOG_DIR}/wm/ckpts/vision.ckpt

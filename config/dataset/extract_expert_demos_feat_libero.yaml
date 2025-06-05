@@ -1,0 +1,10 @@
+defaults:
+  - ../setup@_global_
+
+input_dir: ${root}/dataset/libero/libero_90_calvin_fmt_64/
+output_dir: ${root}/dataset/expert/libero-fea-50/
+features_file_name: visionwm_features.pkl # assuming this file exists in both training and validation directories
+skills_list: ["KITCHEN_SCENE1_open_the_top_drawer_of_the_cabinet", "KITCHEN_SCENE2_open_the_top_drawer_of_the_cabinet", "KITCHEN_SCENE3_turn_on_the_stove", "KITCHEN_SCENE4_close_the_bottom_drawer_of_the_cabinet"]
+fields_to_extract: ["features", "rel_actions"]
+n_episodes: 50 # Randomly chosen, use -1 for all episodes
+step_len: 1

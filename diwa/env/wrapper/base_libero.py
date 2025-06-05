@@ -203,5 +203,5 @@ if __name__ == "__main__":
     # Example usage
     task_name = "KITCHEN_SCENE1_open_the_top_drawer_of_the_cabinet"  # Replace with an actual task name
     seed = 42  # Replace with a desired seed
-    env_wrapper = LIBEROBaseWrapper(task_name, seed)
-    print(f"Initialized Libero environment for task: {env_wrapper.task_name} with ID: {env_wrapper.task_id}")
+    env = LIBEROBaseWrapper(task_name=task_name, seed=seed)
+    print(f"Initialized Libero environment for task: {env.task_name} with ID: {env.task_id}")

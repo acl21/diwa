@@ -1,0 +1,10 @@
+defaults:
+  - _self_
+  - ../setup@_global_
+
+skills_list: ["KITCHEN_SCENE1_open_the_top_drawer_of_the_cabinet"] #, "KITCHEN_SCENE2_open_the_top_drawer_of_the_cabinet", "KITCHEN_SCENE3_turn_on_the_stove", "KITCHEN_SCENE4_close_the_bottom_drawer_of_the_cabinet"]
+n_random: 10 # Samples 10 random timesteps from each episode
+rewcls_data_dir: ${root}/dataset/expert/libero-feat-1300K-klw3-50/
+rewcls_data_name: "rewcls_train_mix"
+data_out_dir: ${rewcls_data_dir}
+data_out_name: ${rewcls_data_name}_balanced_${n_random}

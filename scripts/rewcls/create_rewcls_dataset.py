@@ -18,55 +18,25 @@ def make_rewcls_dataset(cfg, wmw, split):
     """
     print(f"Creating reward classifier dataset for {split} split...")
 
-    for skill_name in cfg.skill_list:
+    for skill_name in cfg.skills_list:
         print(f"Processing skill: {skill_name}")
         wmw.skill = skill_name
 
         feat_data_path = Path(cfg.feat_data_dir) / skill_name / f"{split}.npz"
         feat_data = np.load(feat_data_path, allow_pickle=True)
 
-        scene_data_path = Path(cfg.state_data_dir) / skill_name / f"{split}.npz"
-        scene_data = np.load(scene_data_path, allow_pickle=True)
-        X_scene = scene_data["states"]
+        rewards_data_path = Path(cfg.rewards_data_dir) / skill_name / f"{split}_rewards.npz"
+        rewards_data = np.load(rewards_data_path, allow_pickle=True)
 
         traj_lengths = feat_data["traj_lengths"]
         ep_ends = np.cumsum(feat_data["traj_lengths"])
         ep_starts = np.concatenate(([0], ep_ends[:-1]))
-        true_rewards = np.zeros(len(feat_data["states"]))
 
         # Save the latent states with the corresponding binary labels
         X = feat_data["states"]
-        y = true_rewards
+        y = rewards_data["rewards"]
 
-        # Flag frames that finish the task as success
-        for episode_idx in tqdm(range(len(traj_lengths)), desc="True Latents: "):
-            start_idx = ep_starts[episode_idx]
-            end_idx = ep_ends[episode_idx]
-            for i in range(start_idx + 1, end_idx):
-                if skill_name == "open_drawer":
-                    if X_scene[i][19] - X_scene[start_idx][19] >= 0.12:
-                        y[i] = 1
-                elif skill_name == "close_drawer":
-                    if X_scene[i][19] - X_scene[start_idx][19] <= -0.12:
-                        y[i] = 1
-                elif skill_name == "move_slider_left":
-                    if X_scene[i][18] - X_scene[start_idx][18] >= 0.15:
-                        y[i] = 1
-                elif skill_name == "move_slider_right":
-                    if X_scene[i][18] - X_scene[start_idx][18] <= -0.15:
-                        y[i] = 1
-                elif skill_name == "turn_on_led":
-                    if X_scene[i][23] == 1:
-                        y[i] = 1
-                elif skill_name == "turn_off_led":
-                    if X_scene[i][23] == 0:
-                        y[i] = 1
-                elif skill_name == "turn_on_lightbulb":
-                    if X_scene[i][22] == 1:
-                        y[i] = 1
-                elif skill_name == "turn_off_lightbulb":
-                    if X_scene[i][22] == 0:
-                        y[i] = 1
+        assert len(X) == len(y), "Length of states and rewards must match."
 
         np.savez(
             Path(cfg.data_out_dir) / skill_name / f"{cfg.data_out_prefix}_{split}.npz",
@@ -94,7 +64,7 @@ def make_rewcls_dataset(cfg, wmw, split):
             obs_feat = torch.tensor(obs_feat, dtype=torch.float32).to(cfg.device)
             actions = feat_data["actions"][start_idx:end_idx]
             actions = torch.tensor(actions, dtype=torch.float32).to(cfg.device)
-            true_y = true_rewards[start_idx:end_idx]
+            true_y = rewards_data["rewards"][start_idx:end_idx]
 
             latent = obs_feat[0].unsqueeze(0)
             imagined_X.append(latent.squeeze().cpu().numpy())
@@ -122,7 +92,7 @@ def make_rewcls_dataset(cfg, wmw, split):
 
         # Concatenate the imagined latent states with the true latent states
         X_mix = np.concatenate((X, imagined_X), axis=0)
-        y_mix = np.concatenate((true_rewards, labels), axis=0)
+        y_mix = np.concatenate((rewards_data["rewards"], labels), axis=0)
         np.savez(
             Path(cfg.data_out_dir) / skill_name / f"{cfg.data_out_prefix}_{split}_mix.npz",
             X=X_mix,
@@ -131,12 +101,12 @@ def make_rewcls_dataset(cfg, wmw, split):
         )
 
 
-@hydra.main(version_base="1.3", config_path="../../config/rewcls", config_name="rewcls_dataset")
+@hydra.main(version_base="1.3", config_path="../../config/rewcls", config_name="rewcls_dataset_libero")
 def main(cfg: DictConfig):
     feat_data_dir = Path(cfg.feat_data_dir)
-    state_data_dir = Path(cfg.state_data_dir)
+    rewards_data_dir = Path(cfg.rewards_data_dir)
     assert feat_data_dir.exists(), f"Feature data directory {feat_data_dir} does not exist."
-    assert state_data_dir.exists(), f"State data directory {state_data_dir} does not exist."
+    assert rewards_data_dir.exists(), f"Rewards data directory {rewards_data_dir} does not exist."
 
     data_out_dir = Path(cfg.data_out_dir)
     if not data_out_dir.exists():
