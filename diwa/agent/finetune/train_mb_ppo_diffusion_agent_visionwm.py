@@ -235,9 +235,13 @@ class TrainMBPPODiffusionAgent(TrainPPOAgent):
             else:
                 episode_rewards = []
                 episode_lengths = []
-                robot_obs = self.env.robot_obs
-                scene_obs = self.env.scene_obs
-                total_episodes_eval = robot_obs.shape[0]
+                if self.env_type == "calvin":
+                    robot_obs = self.env.robot_obs
+                    scene_obs = self.env.scene_obs
+                    total_episodes_eval = robot_obs.shape[0]
+                elif self.env_type == "libero":
+                    init_states = self.env.init_states
+                    total_episodes_eval = init_states.shape[0]
                 options_venv = [{} for _ in range(total_episodes_eval)]
                 if self.n_render == 1:
                     rand_ind = np.random.randint(0, total_episodes_eval)
@@ -260,11 +264,17 @@ class TrainMBPPODiffusionAgent(TrainPPOAgent):
                     if i % 10 == 0:
                         print(f"Processed episode {i} of {total_episodes_eval}")
                     prev_obs_venv = {}
-                    prev_obs_venv["state"], _ = self.env.reset(
-                        robot_obs=robot_obs[i],
-                        scene_obs=scene_obs[i],
-                        options=options_venv[i],
-                    )
+                    if self.env_type == "calvin":
+                        prev_obs_venv["state"], _ = self.env.reset(
+                            robot_obs=robot_obs[i],
+                            scene_obs=scene_obs[i],
+                            options=options_venv[i],
+                        )
+                    elif self.env_type == "libero":
+                        prev_obs_venv["state"], _ = self.env.reset(
+                            init_states=init_states[i],
+                            options=options_venv[i],
+                        )
 
                     # WM Encoder
                     if self.wme is not None:
