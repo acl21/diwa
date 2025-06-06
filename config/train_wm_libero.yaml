@@ -12,10 +12,11 @@ defaults:
   - override hydra/job_logging: colorlog
   - override hydra/hydra_logging: colorlog
 
+log_dir: ${oc.env:DIWA_LOG_DIR}/wm/
 script: wm
 datamodule:
-  root_data_dir: ${root}/dataset/libero/libero_90_calvin_fmt_64
-  
+  root_data_dir: ${oc.env:DIWA_DATA_DIR}/libero/libero_90_calvin_fmt_64
+
 hydra:
   run:
     dir: ${log_dir}/runs/${now:%Y-%m-%d}/${now:%H-%M-%S}

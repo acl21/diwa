@@ -1,6 +1,3 @@
-defaults:
-  - ../setup@_global_
-
-input_dir: ${root}/dataset/libero/libero_90_calvin_fmt_256_full/
-output_dir: ${root}/dataset/libero/libero_90_calvin_fmt_256/
+input_dir: ${oc.env:DIWA_DATA_DIR}/libero/libero_90_calvin_fmt_256_full/
+output_dir: ${oc.env:DIWA_DATA_DIR}/libero/libero_90_calvin_fmt_256/
 val_ratio: 0.05

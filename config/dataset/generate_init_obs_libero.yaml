@@ -1,6 +1,2 @@
-defaults:
-  - _self_
-  - ../setup@_global_
-
-tasks_list: ["KITCHEN_SCENE1_open_the_top_drawer_of_the_cabinet"] # "KITCHEN_SCENE2_open_the_top_drawer_of_the_cabinet", "KITCHEN_SCENE3_turn_on_the_stove", "KITCHEN_SCENE4_close_the_bottom_drawer_of_the_cabinet"]
-output_dir: ${root}/dataset/expert/libero-feat-1300K-50/
+tasks_list: ["KITCHEN_SCENE1_open_the_top_drawer_of_the_cabinet", "KITCHEN_SCENE2_open_the_top_drawer_of_the_cabinet", "KITCHEN_SCENE3_turn_on_the_stove", "KITCHEN_SCENE4_close_the_bottom_drawer_of_the_cabinet"]
+output_dir: ${oc.env:DIWA_DATA_DIR}/expert/libero-feat-50/

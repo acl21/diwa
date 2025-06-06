@@ -8,7 +8,13 @@ then
     unzip task_D_D.zip && rm task_D_D.zip
     mv task_A_A task_D_D
     echo "saved folder: task_D_D"
+elif [ "$1" = "real" ]
+then
+    echo "Downloading real task ..."
+    wget http://diwa.cs.uni-freiburg.de/dataset/real-play.zip
+    unzip real-play.zip && rm real-play.zip
+    echo "saved folder: real-play"
 else
-    echo "Failed: Usage download_data.sh calvin | XXX "
+    echo "Failed: Usage download_data.sh calvin/real | XXX "
     exit 1
 fi

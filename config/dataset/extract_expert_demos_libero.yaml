@@ -1,8 +1,5 @@
-defaults:
-  - ../setup@_global_
-
-input_dir: ${root}/dataset/libero/libero_90_calvin_fmt_64/
-output_dir: ${root}/dataset/expert/libero-state-raw-50/
+input_dir: ${oc.env:DIWA_DATA_DIR}/libero/libero_90_calvin_fmt_64/
+output_dir: ${oc.env:DIWA_DATA_DIR}/expert/libero-state-raw-50/
 skills_list: ["KITCHEN_SCENE1_open_the_top_drawer_of_the_cabinet", "KITCHEN_SCENE2_open_the_top_drawer_of_the_cabinet", "KITCHEN_SCENE3_turn_on_the_stove", "KITCHEN_SCENE4_close_the_bottom_drawer_of_the_cabinet"]
 fields_to_extract: ["robot_obs", "scene_obs", "rel_actions"]
 n_episodes: 50 # Randomly chosen, use -1 for all episodes
