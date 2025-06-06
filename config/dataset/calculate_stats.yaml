@@ -1,8 +1,5 @@
-defaults:
-  - ../setup@_global_
-
-input_dir: ${root}/dataset/calvin/task_D_D_rgb64_rot6d/
-output_dir: ${root}/dataset/calvin/task_D_D_rgb64_rot6d/
+input_dir: ${oc.env:DIWA_DATA_DIR}/calvin/task_D_D_rgb64_rot6d/
+output_dir: ${oc.env:DIWA_DATA_DIR}/calvin/task_D_D_rgb64_rot6d/
 robot_obs_size: 18
 scene_obs_size: 33
 scene_obs_included: true

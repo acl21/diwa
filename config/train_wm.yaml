@@ -11,7 +11,7 @@ defaults:
   - override hydra/job_logging: colorlog
   - override hydra/hydra_logging: colorlog
 
-log_dir: ${root}/logs/wm
+log_dir: ${oc.env:DIWA_LOG_DIR}/wm/
 script: wm
   
 hydra:

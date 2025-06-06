@@ -11,4 +11,4 @@ wm_chk_dir: /path/to/your/model/checkpoint/X.ckpt
 output_file: "visionwm_features.pkl"
 device: 0
 datamodule:
-  root_data_dir: ${root}/dataset/libero/libero_90_calvin_fmt_64
+  root_data_dir: ${DIWA_DATA_DIR}/libero/libero_90_calvin_fmt_64

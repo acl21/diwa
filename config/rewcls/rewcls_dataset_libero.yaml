@@ -1,0 +1,14 @@
+skills_list: ["KITCHEN_SCENE1_open_the_top_drawer_of_the_cabinet", "KITCHEN_SCENE2_open_the_top_drawer_of_the_cabinet", "KITCHEN_SCENE3_turn_on_the_stove", "KITCHEN_SCENE4_close_the_bottom_drawer_of_the_cabinet"]
+device: "cuda:0"
+# dataset paths
+feat_data_dir: ${oc.env:DIWA_DATA_DIR}/expert/libero-feat-50/
+rewards_data_dir: ${oc.env:DIWA_DATA_DIR}/expert/libero-state-raw-50/
+data_out_dir: ${feat_data_dir}
+data_out_prefix: "rewcls" 
+
+wm:
+  type: vis
+  ckpt_path: ${oc.env:DIWA_LOG_DIR}/wm/ckpts/libero_vision.ckpt
+  device: ${device}
+  stats_path: ${oc.env:DIWA_DATA_DIR}/libero/libero_90_calvin_fmt_64/statistics_minmax.yaml
+  temperature: 1.0

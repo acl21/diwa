@@ -1,0 +1,3 @@
+libero_task_suite: ["libero_90"] #["libero_spatial", "libero_object", "libero_goal", "libero_10", "libero_90"]
+libero_raw_data_dir: ${oc.env:DIWA_DATA_DIR}/libero/libero_90
+libero_target_dir: ${oc.env:DIWA_DATA_DIR}/libero/libero_90_256

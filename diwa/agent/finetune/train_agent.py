@@ -79,6 +79,16 @@ class TrainAgent:
                 rgb_obs=cfg.get("rgb_obs", False),
                 stacked_obs=cfg.get("stacked_obs", False),
             )
+            init_obs_path = cfg.env.get("init_obs_path", None)
+            if init_obs_path is not None:
+                # Load initial observations from the specified path
+                env_init_obs = np.load(init_obs_path, allow_pickle=True)
+                self.env_init_obs = {
+                    "robot_obs": env_init_obs["robot_obs"],
+                    "rgb_statics": env_init_obs["rgb_statics"],
+                    "rgb_grippers": env_init_obs["rgb_grippers"],
+                }
+
         elif env_type == "real":
             self.venv = np.load(cfg.env.load_scene_from_dataset, allow_pickle=True)
             self.env = cfg.env

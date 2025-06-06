@@ -4,3 +4,5 @@
  robosuite==1.4.0
  bddl==1.0.1
  future==0.18.2
+ PyOpenGL==3.1.0
+ PyOpenGL_accelerate==3.1.9
