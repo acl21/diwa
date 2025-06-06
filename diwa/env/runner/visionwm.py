@@ -9,7 +9,7 @@ import wandb
 log = logging.getLogger(__name__)
 
 
-class LIBEROEnvRunner(object):
+class EnvRunner(object):
     def __init__(self):
         self.n_envs = None
         self.n_render = None
@@ -29,6 +29,7 @@ class LIBEROEnvRunner(object):
         self.act_steps = cfg.act_steps
         self.render_video = cfg.env.save_video
         self.best_reward_threshold_for_success = cfg.env.best_reward_threshold_for_success
+        self.env_type = cfg.env_type
 
     @torch.no_grad()
     def run(self, epoch, model, venv, wme):
@@ -37,8 +38,13 @@ class LIBEROEnvRunner(object):
 
         episode_rewards = []
         episode_lengths = []
-        init_states = venv.init_states
-        total_episodes_eval = init_states.shape[0]
+        if self.env_type == "calvin":
+            robot_obs = venv.robot_obs
+            scene_obs = venv.scene_obs
+            total_episodes_eval = robot_obs.shape[0]
+        elif self.env_type == "libero":
+            init_states = venv.init_states
+            total_episodes_eval = init_states.shape[0]
         options_venv = [{} for _ in range(total_episodes_eval)]
         rand_ind = np.random.randint(0, total_episodes_eval)
         options_venv[rand_ind] = {
@@ -52,10 +58,17 @@ class LIBEROEnvRunner(object):
             if i % 10 == 0:
                 print(f"Processed episode {i} of {total_episodes_eval}")
             prev_obs_venv = {}
-            prev_obs_venv["state"], _ = venv.reset(
-                init_states=init_states[i],
-                options=options_venv[i],
-            )
+            if self.env_type == "calvin":
+                prev_obs_venv["state"], _ = venv.reset(
+                    robot_obs=robot_obs[i],
+                    scene_obs=scene_obs[i],
+                    options=options_venv[i],
+                )
+            elif self.env_type == "libero":
+                prev_obs_venv["state"], _ = venv.reset(
+                    init_states=init_states[i],
+                    options=options_venv[i],
+                )
 
             # WM Encoder
             if wme is not None:

@@ -74,7 +74,7 @@ train_dataset:
   device: ${device}
 
 env_runner:
-  _target_: diwa.env.runner.calvin_statewm.CALVINEnvRunner
+  _target_: diwa.env.runner.statewm.EnvRunner
 
 env:
   n_envs: 1 # For pretraining, we only need one environment (do not change this)

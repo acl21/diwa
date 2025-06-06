@@ -1,9 +1,10 @@
 input_dir: ${oc.env:DIWA_DATA_DIR}/libero/libero_90_calvin_fmt_64/
-output_dir: ${oc.env:DIWA_DATA_DIR}/expert/libero-state-raw-50/
-skills_list: ["KITCHEN_SCENE1_open_the_top_drawer_of_the_cabinet", "KITCHEN_SCENE2_open_the_top_drawer_of_the_cabinet", "KITCHEN_SCENE3_turn_on_the_stove", "KITCHEN_SCENE4_close_the_bottom_drawer_of_the_cabinet"]
+output_dir: ${oc.env:DIWA_DATA_DIR}/expert/libero-state-50/
+skills_list: ["KITCHEN_SCENE1_open_the_top_drawer_of_the_cabinet", "KITCHEN_SCENE1_open_the_bottom_drawer_of_the_cabinet","KITCHEN_SCENE1_put_the_black_bowl_on_the_plate", "KITCHEN_SCENE2_open_the_top_drawer_of_the_cabinet", "KITCHEN_SCENE3_turn_on_the_stove", "KITCHEN_SCENE4_close_the_bottom_drawer_of_the_cabinet", "KITCHEN_SCENE5_close_the_top_drawer_of_the_cabinet", "KITCHEN_SCENE10_close_the_top_drawer_of_the_cabinet"]
 fields_to_extract: ["robot_obs", "scene_obs", "rel_actions"]
 n_episodes: 50 # Randomly chosen, use -1 for all episodes
 step_len: 1
-normalize: false
-save_starts: true
+normalize: true
+save_starts: false
 save_start_length: 1
+seed: 42

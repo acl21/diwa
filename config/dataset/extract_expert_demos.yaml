@@ -7,3 +7,4 @@ step_len: 1
 normalize: true
 save_starts: true
 save_start_length: 1
+seed: 42

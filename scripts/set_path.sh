@@ -15,17 +15,17 @@ read -p "Enter the desired logging directory [default: ${DEFAULT_LOG_DIR}], leav
 DIWA_LOG_DIR=${LOG_DIR:-$DEFAULT_LOG_DIR}  # Use user input or default if input is empty
 
 # Export to current session
-export DIWA_DIR="$PWD"
+export DIWA_ROOT_DIR="$PWD"
 export DIWA_DATA_DIR="$DIWA_DATA_DIR"
 export DIWA_LOG_DIR="$DIWA_LOG_DIR"
 
 # Confirm the paths with the user
-echo "DIWA directory set to: $DIWA_DIR"
+echo "DIWA directory set to: $DIWA_ROOT_DIR"
 echo "Data directory set to: $DIWA_DATA_DIR"
 echo "Log directory set to: $DIWA_LOG_DIR"
 
 # Append environment variables to .bashrc
-echo "export DIWA_DIR=\"$DIWA_DIR\"" >> ~/.bashrc
+echo "export DIWA_ROOT_DIR=\"$DIWA_ROOT_DIR\"" >> ~/.bashrc
 echo "export DIWA_DATA_DIR=\"$DIWA_DATA_DIR\"" >> ~/.bashrc
 echo "export DIWA_LOG_DIR=\"$DIWA_LOG_DIR\"" >> ~/.bashrc
 

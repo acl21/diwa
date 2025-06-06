@@ -151,7 +151,7 @@ def make_libero_env(
             from diwa.env.wrapper.libero_image_stateful import LIBEROImageWrapper as LIBEROEnvWrapper
         else:
             if stacked_obs:
-                from diwa.env.wrapper.libero_image_stacked import LIBEROEnvWrapper
+                from diwa.env.wrapper.libero_image_stacked import LIBEROImageWrapper as LIBEROEnvWrapper
             else:
                 from diwa.env.wrapper.libero_image import LIBEROImageWrapper as LIBEROEnvWrapper
     else:

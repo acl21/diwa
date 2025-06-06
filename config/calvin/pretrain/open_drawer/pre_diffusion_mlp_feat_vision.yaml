@@ -75,7 +75,7 @@ train_dataset:
 
 
 env_runner:
-  _target_: diwa.env.runner.calvin_visionwm.CALVINEnvRunner
+  _target_: diwa.env.runner.visionwm.EnvRunner
 
 wm:
   _target_: diwa.wm.encoder.visionwm.VisionWMObsEncoder

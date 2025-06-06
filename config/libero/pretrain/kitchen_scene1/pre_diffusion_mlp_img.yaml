@@ -3,43 +3,54 @@ hydra:
     dir: ${logdir}
 _target_: diwa.agent.pretrain.train_diffusion_agent.TrainDiffusionAgent
 
-name: ${env_name}_pre_diffusion_mlp_feat_ta${horizon_steps}_td${denoising_steps}
-logdir: ${oc.env:DIWA_LOG_DIR}/libero-pretrain-feat/${name}/${now:%Y-%m-%d}_${now:%H-%M-%S}_${seed}
-train_dataset_path: ${oc.env:DIWA_DATA_DIR}/expert/libero-feat-1300K-50/${env_name}/train.npz
-normalization_path: null
+name: ${env_name}_pre_diffusion_mlp_img_ta${horizon_steps}_td${denoising_steps}
+logdir: ${oc.env:DIWA_LOG_DIR}/libero-pretrain-img/${name}/${now:%Y-%m-%d}_${now:%H-%M-%S}_${seed}
+train_dataset_path: ${oc.env:DIWA_DATA_DIR}/expert/libero-img-50/${env_name}/train.npz
+normalization_path: ${oc.env:DIWA_DATA_DIR}/expert/libero-img-50/${env_name}/normalization.npz
 
 seed: 42
 device: cuda:0
 env_name: KITCHEN_SCENE1_open_the_top_drawer_of_the_cabinet
 env_type: libero
-obs_dim: 2048
+obs_dim: 15
 action_dim: 7
 denoising_steps: 20
 horizon_steps: 4
 cond_steps: 1
+img_cond_steps: 1
 act_steps: ${horizon_steps}
 
 comment: ""
 rgb_obs: true
+stacked_obs: true
 
 wandb:
   entity: ${oc.env:DIWA_WANDB_ENTITY}
   project: libero-${env_name}-pretrain
-  run: ${comment}-vision-feat-${now:%H-%M-%S}_${name}
+  run: ${comment}_${now:%H-%M-%S}_${name}
   dir: ${logdir}
 
+shape_meta:
+  obs:
+    rgb:
+      shape: [6, 64, 64]  # not counting img_cond_steps
+    state:
+      shape: [15]
+  action: 
+    shape: [7]
+
 train:
-  n_epochs: 8000
+  n_epochs: 5000
   batch_size: 256
   learning_rate: 1e-4
   weight_decay: 1e-6
   lr_scheduler:
-    first_cycle_steps: 10000
+    first_cycle_steps: 8000
     warmup_steps: 100
     min_lr: 1e-5
   epoch_start_ema: 20
   update_ema_freq: 10
-  save_model_freq: 1000
+  save_model_freq: 500
   val_freq: 1000
 
 model:
@@ -47,7 +58,23 @@ model:
   predict_epsilon: True
   denoised_clip_value: 1.0
   network:
-    _target_: diwa.model.diffusion.mlp_diffusion.DiffusionMLP
+    _target_: diwa.model.diffusion.mlp_diffusion.VisionDiffusionMLP
+    backbone:
+      _target_: diwa.model.common.vit.VitEncoder
+      obs_shape: ${shape_meta.obs.rgb.shape}
+      num_channel: ${eval:'${shape_meta.obs.rgb.shape[0]} * ${img_cond_steps}'} # each image patch is history concatenated
+      img_h: ${shape_meta.obs.rgb.shape[1]}
+      img_w: ${shape_meta.obs.rgb.shape[2]}
+      cfg:
+        patch_size: 8
+        depth: 1
+        embed_dim: 128
+        num_heads: 4
+        embed_style: embed2
+        embed_norm: 0
+    img_cond_steps: ${img_cond_steps}
+    augment: True
+    spatial_emb: 128
     time_dim: 16
     mlp_dims: [512, 512, 512]
     residual_style: True
@@ -65,20 +92,16 @@ ema:
 
 train_dataset:
   _target_: diwa.dataset.sequence.StitchedSequenceDataset
+  use_img: True
   dataset_path: ${train_dataset_path}
   horizon_steps: ${horizon_steps}
+  max_n_episodes: 100
   cond_steps: ${cond_steps}
+  img_cond_steps: ${img_cond_steps}
   device: ${device}
-
 
 env_runner:
-  _target_: diwa.env.runner.visionwm.EnvRunner
-
-wm:
-  _target_: diwa.wm.encoder.visionwm.VisionWMObsEncoder
-  ckpt_path: ${oc.env:DIWA_LOG_DIR}/wm/ckpts/libero_vision.ckpt
-  device: ${device}
-  stats_path: ${oc.env:DIWA_DATA_DIR}/libero/libero_90_calvin_fmt_64/statistics_minmax.yaml
+  _target_: diwa.env.runner.image.EnvRunner
 
 env:
   n_envs: 1 # For pretraining, we only need one environment (do not change this)
@@ -88,7 +111,3 @@ env:
   best_reward_threshold_for_success: 1
   max_episode_steps: 100
   save_video: true
-  # The following multistep parameters are important so that we can estimate 
-  # a more accurate WM state from the history of observations & actions
-  n_obs_steps: ${horizon_steps}
-  n_action_steps: ${horizon_steps}
