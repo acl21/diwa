@@ -199,6 +199,10 @@ def make_dataset(cfg: DictConfig) -> None:
                 features_file_name=cfg.features_file_name,
             )
 
+            if len(extractor) == 0:
+                logger.warning(f"No episodes found for skill {skill} in split {split}. Skipping...")
+                continue
+
             states = np.array([])
             actions = np.array([])
             traj_lengths = np.array([])

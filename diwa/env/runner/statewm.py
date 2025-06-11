@@ -1,10 +1,10 @@
 import logging
 import os
 
-from env.runner.base_runner import BaseEnvRunner
 import numpy as np
 import torch
 
+from diwa.env.runner.base_runner import BaseEnvRunner
 import wandb
 
 log = logging.getLogger(__name__)

@@ -1,4 +1,3 @@
-# TODO: Modified from
 #!/bin/bash
 
 ##################### Paths #####################

@@ -5,7 +5,7 @@ _target_: diwa.agent.pretrain.train_diffusion_agent.TrainDiffusionAgent
 
 name: ${env_name}_pre_diffusion_mlp_feat_ta${horizon_steps}_td${denoising_steps}
 logdir: ${oc.env:DIWA_LOG_DIR}/libero-pretrain-feat/${name}/${now:%Y-%m-%d}_${now:%H-%M-%S}_${seed}
-train_dataset_path: ${oc.env:DIWA_DATA_DIR}/expert/libero-feat-1300K-50/${env_name}/train.npz
+train_dataset_path: ${oc.env:DIWA_DATA_DIR}/expert/libero-feat-50/${env_name}/train.npz
 normalization_path: null
 
 seed: 42
@@ -76,7 +76,7 @@ env_runner:
 
 wm:
   _target_: diwa.wm.encoder.visionwm.VisionWMObsEncoder
-  ckpt_path: ${oc.env:DIWA_LOG_DIR}/wm/ckpts/libero_vision.ckpt
+  ckpt_path: ${oc.env:DIWA_LOG_DIR}/wm/ckpts/vision_libero.ckpt
   device: ${device}
   stats_path: ${oc.env:DIWA_DATA_DIR}/libero/libero_90_calvin_fmt_64/statistics_minmax.yaml
 

@@ -21,13 +21,9 @@ class EnvRunner(BaseEnvRunner):
 
         episode_rewards = []
         episode_lengths = []
-        if self.env_type == "calvin":
-            robot_obs = venv.robot_obs
-            scene_obs = venv.scene_obs
-            total_episodes_eval = robot_obs.shape[0]
-        elif self.env_type == "libero":
-            init_states = venv.init_states
-            total_episodes_eval = init_states.shape[0]
+        robot_obs = venv.robot_obs
+        scene_obs = venv.scene_obs
+        total_episodes_eval = robot_obs.shape[0]
         options_venv = [{} for _ in range(total_episodes_eval)]
         rand_ind = np.random.randint(0, total_episodes_eval)
         options_venv[rand_ind] = {
@@ -41,17 +37,11 @@ class EnvRunner(BaseEnvRunner):
             if i % 10 == 0:
                 print(f"Processed episode {i} of {total_episodes_eval}")
             prev_obs_venv = {}
-            if self.env_type == "calvin":
-                prev_obs_venv["state"], _ = venv.reset(
-                    robot_obs=robot_obs[i],
-                    scene_obs=scene_obs[i],
-                    options=options_venv[i],
-                )
-            elif self.env_type == "libero":
-                prev_obs_venv["state"], _ = venv.reset(
-                    init_states=init_states[i],
-                    options=options_venv[i],
-                )
+            prev_obs_venv["state"], _ = venv.reset(
+                robot_obs=robot_obs[i],
+                scene_obs=scene_obs[i],
+                options=options_venv[i],
+            )
 
             # WM Encoder
             if wme is not None:
@@ -74,7 +64,7 @@ class EnvRunner(BaseEnvRunner):
                 with torch.no_grad():
                     cond = {"state": torch.from_numpy(prev_obs_venv["state"]).float().to(device)}
                     samples = model(cond=cond, deterministic=True)
-                    output_venv = samples.trajectories.cpu().numpy()  # n_env x horizon x act
+                    output_venv = samples.cpu().numpy()  # n_env x horizon x act
                 action_venv = output_venv[:, : self.act_steps]
                 # Apply multi-step action
                 (
