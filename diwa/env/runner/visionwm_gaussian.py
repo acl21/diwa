@@ -4,31 +4,15 @@ import os
 import numpy as np
 import torch
 
+from diwa.env.runner.base_runner import BaseEnvRunner
 import wandb
 
 log = logging.getLogger(__name__)
 
 
-class CALVINEnvRunner(object):
+class EnvRunner(BaseEnvRunner):
     def __init__(self):
-        self.n_envs = None
-        self.n_render = None
-        self.n_steps = None
-        self.use_wandb = None
-        self.render_dir = None
-        self.reset_at_iteration = None
-        self.act_steps = None
-        self.render_video = None
-        self.best_reward_threshold_for_success = None
-
-    def init_values(self, cfg):
-        self.n_envs = cfg.env.n_envs
-        self.n_render = cfg.env.n_render
-        self.n_steps = cfg.env.max_episode_steps
-        self.use_wandb = cfg.wandb is not None
-        self.act_steps = cfg.act_steps
-        self.render_video = cfg.env.save_video
-        self.best_reward_threshold_for_success = cfg.env.best_reward_threshold_for_success
+        super().__init__()
 
     @torch.no_grad()
     def run(self, epoch, model, venv, wme):
@@ -61,7 +45,14 @@ class CALVINEnvRunner(object):
 
             # WM Encoder
             if wme is not None:
-                prev_obs_venv["state"] = np.expand_dims(np.expand_dims(prev_obs_venv["state"][-1, :], 0), 0)
+                if type(prev_obs_venv["state"]) is not dict:
+                    prev_obs_venv["state"] = np.expand_dims(np.expand_dims(prev_obs_venv["state"][-1, :], 0), 0)
+                else:
+                    for key in prev_obs_venv["state"]:
+                        prev_obs_venv["state"][key] = np.expand_dims(
+                            np.expand_dims(prev_obs_venv["state"][key][-1, :], 0), 0
+                        )
+
                 wm_features, out_state = wme.get_zero_wm_features(prev_obs_venv["state"], device)
                 prev_obs_venv["state"] = wm_features.cpu().numpy()
                 in_state = out_state
@@ -73,7 +64,7 @@ class CALVINEnvRunner(object):
                 with torch.no_grad():
                     cond = {"state": torch.from_numpy(prev_obs_venv["state"]).float().to(device)}
                     samples = model(cond=cond, deterministic=True)
-                    output_venv = samples.trajectories.cpu().numpy()  # n_env x horizon x act
+                    output_venv = samples.cpu().numpy()  # n_env x horizon x act
                 action_venv = output_venv[:, : self.act_steps]
                 # Apply multi-step action
                 (
@@ -93,8 +84,13 @@ class CALVINEnvRunner(object):
 
                 # WM Encoder
                 if wme is not None:
+                    if type(obs_venv) is not dict:
+                        obs_venv = np.expand_dims(obs_venv, 0)
+                    else:
+                        for key in obs_venv:
+                            obs_venv[key] = np.expand_dims(obs_venv[key], 0)
                     wm_features, out_state = wme.get_hist_wm_features(
-                        np.expand_dims(obs_venv, 0),
+                        obs_venv,
                         action_venv,
                         prev_done_venv,
                         in_state,

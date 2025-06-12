@@ -57,7 +57,7 @@ def make_calvin_env(
         # a single environment is enough to generate the environment start states
         train_env = CALVINWrapper(
             calvin_env_cfg,
-            skill_name=id,
+            skill_name=skill_name,
             normalization_path=normalization_path,
             max_episode_steps=max_episode_steps,
             load_scene_from_dataset=load_scene_from_dataset,
@@ -75,7 +75,7 @@ def make_calvin_env(
         def _make_env():
             env = CALVINWrapper(
                 calvin_env_cfg,
-                skill_name=id,
+                skill_name=skill_name,
                 normalization_path=normalization_path,
                 max_episode_steps=max_episode_steps,
                 load_scene_from_dataset=load_scene_from_dataset,
@@ -151,7 +151,7 @@ def make_libero_env(
             from diwa.env.wrapper.libero_image_stateful import LIBEROImageWrapper as LIBEROEnvWrapper
         else:
             if stacked_obs:
-                from diwa.env.wrapper.libero_image_stacked import LIBEROEnvWrapper
+                from diwa.env.wrapper.libero_image_stacked import LIBEROImageWrapper as LIBEROEnvWrapper
             else:
                 from diwa.env.wrapper.libero_image import LIBEROImageWrapper as LIBEROEnvWrapper
     else:
@@ -192,10 +192,9 @@ def make_libero_env(
                 normalization_path=normalization_path,
                 max_episode_steps=max_episode_steps,
             )
-            seed = env.seed()[0]
             import numpy as np
 
-            env.seed(seed + np.random.randint(1e6))
+            env.seed(np.random.randint(1e6))
             return MultiStepWrapper(
                 env=env,
                 n_obs_steps=n_obs_steps,

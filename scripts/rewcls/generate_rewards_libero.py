@@ -1,3 +1,5 @@
+import os
+
 import hydra
 import numpy as np
 from omegaconf import DictConfig
@@ -31,6 +33,9 @@ def main(cfg: DictConfig):
         for task_name in tqdm(cfg.tasks_list, desc="Task"):
             print(f"Processing task: {task_name}")
             env = LIBEROLowDimWrapper(task_name=task_name, max_episode_steps=1000)
+            if not os.path.exists(f"{cfg.input_dir}/{task_name}/{split}.npz"):
+                print(f"Input file {cfg.input_dir}/{task_name}/{split}.npz does not exist. Skipping.")
+                continue
             data = np.load(
                 f"{cfg.input_dir}/{task_name}/{split}.npz",
                 allow_pickle=True,

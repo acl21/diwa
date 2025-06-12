@@ -33,7 +33,7 @@ class LIBEROImageWrapper(LIBEROBaseWrapper):
         """
         Returns the observation space of the environment.
         """
-        obs_dim = 51
+        obs_dim = 15
         rgb_dim = 64 * 64 * 3
         return gym.spaces.Dict(
             {

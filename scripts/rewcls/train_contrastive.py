@@ -58,8 +58,12 @@ def train_model(cfg):
     train_dataset = RewClsDataset(cfg.train_data_path)
     train_dataloader = DataLoader(train_dataset, batch_size=cfg.batch_size, shuffle=True)
 
-    val_dataset = RewClsDataset(cfg.val_data_path)
-    val_dataloader = DataLoader(val_dataset, batch_size=cfg.batch_size, shuffle=False)
+    if cfg.val_data_path:
+        val_dataset = RewClsDataset(cfg.val_data_path)
+        val_dataloader = DataLoader(val_dataset, batch_size=cfg.batch_size, shuffle=False)
+    else:
+        val_dataset = None
+        val_dataloader = None
 
     model = ContrastiveModel(input_dim=train_dataset.X.shape[1])
     model.to(cfg.device)
@@ -115,7 +119,7 @@ def train_model(cfg):
         if cfg.wandb:
             wandb.log({"train_precision_0": train_precision, "train_recall_0": train_recall})
 
-        if epoch % 5 == 0:
+        if epoch % 5 == 0 and val_dataloader is not None:
             val_loss = 0
             val_contrastive_loss = 0
             val_ce_loss = 0
@@ -169,14 +173,16 @@ def train_model(cfg):
     print("Model saved to", os.path.join(cfg.model_out_dir, cfg.model_save_name))
 
 
-@hydra.main(version_base="1.3", config_path="../../config/rewcls", config_name="contrastive")
+@hydra.main(version_base="1.3", config_path="../../config/rewcls", config_name="contrastive_libero")
 def main(cfg: DictConfig):
     train_data_path = Path(cfg.train_data_path)
-    val_data_path = Path(cfg.val_data_path)
     model_out_dir = Path(cfg.model_out_dir)
 
     assert train_data_path.exists(), f"Train data path {train_data_path} does not exist."
-    assert val_data_path.exists(), f"Validation data path {val_data_path} does not exist."
+
+    if cfg.val_data_path:
+        val_data_path = Path(cfg.val_data_path)
+        assert val_data_path.exists(), f"Validation data path {val_data_path} does not exist."
 
     if not model_out_dir.exists():
         model_out_dir.mkdir(parents=True, exist_ok=True)

@@ -28,7 +28,7 @@ rgb_obs: true
 wandb:
   entity: ${oc.env:DIWA_WANDB_ENTITY}
   project: calvin-${env_name}-pretrain
-  run: ${comment}-vision-feat-${now:%H-%M-%S}_${name}
+  run: ${comment}-vision-feat-${now:%H-%M-%S}-${name}
   dir: ${logdir}
 
 train:
@@ -75,7 +75,7 @@ train_dataset:
 
 
 env_runner:
-  _target_: diwa.env.runner.calvin_visionwm.CALVINEnvRunner
+  _target_: diwa.env.runner.visionwm.EnvRunner
 
 wm:
   _target_: diwa.wm.encoder.visionwm.VisionWMObsEncoder

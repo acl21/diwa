@@ -108,7 +108,7 @@ If you find DiWA useful in your work, please leave a ⭐ and consider citing our
 This repository is released under the GPL-3.0 license. See [LICENSE](LICENSE).
 
 ## Acknowledgement
-* [DPPO, Zen et al.](https://github.com/irom-princeton/dppo): Code base on top of which DiWA was built. Mainly, `diwa/model/`, PPO implementation
-* [LUMOS, Nematollahi et al.](https://github.com/nematoli/lumos): All things world model
-* [CALVIN, Mees et al.](https://github.com/mees/calvin_env): Simulation experiments
-* [LIBERO, Liu et al.](https://github.com/Lifelong-Robot-Learning/LIBERO): Simulation experiments
+* [DPPO, Zen et al.](https://github.com/irom-princeton/dppo): Code base on top of which DiWA was built. Specifically, `sequence.py` in `diwa/dataset`, DDPM, DDIM, Gaussian, MLP/U-Net, ViT implementation in `diwa/model/`, PPO implementation in `diwa/agent/`.
+* [LUMOS, Nematollahi et al.](https://github.com/nematoli/lumos): World model training.
+* [CALVIN, Mees et al.](https://github.com/mees/calvin_env): Simulation experiments.
+* [LIBERO, Liu et al.](https://github.com/Lifelong-Robot-Learning/LIBERO): Simulation experiments.

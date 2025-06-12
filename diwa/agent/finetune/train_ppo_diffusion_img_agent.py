@@ -1,5 +1,9 @@
 """
-DiWA fine-tuning.
+Modified from https://github.com/irom-princeton/dppo
+"""
+
+"""
+DPPO fine-tuning for pixel observations.
 
 """
 
@@ -9,118 +13,75 @@ import os
 import pickle
 
 import einops
-import imageio
 import numpy as np
 import torch
 
 import wandb
 
 log = logging.getLogger(__name__)
-from diwa.agent.finetune.train_ppo_agent import TrainPPOAgent
-from diwa.utils.scheduler import CosineAnnealingWarmupRestarts
+from diwa.agent.finetune.train_ppo_diffusion_agent import TrainPPODiffusionAgent
+from diwa.model.common.modules import RandomShiftsAug
 from diwa.utils.timer import Timer
 
 
-class TrainMBPPODiffusionAgent(TrainPPOAgent):
+class TrainPPOImgDiffusionAgent(TrainPPODiffusionAgent):
     def __init__(self, cfg):
         super().__init__(cfg)
 
-        # Reward horizon --- always set to act_steps for now
-        self.reward_horizon = cfg.get("reward_horizon", self.act_steps)
+        # Image randomization
+        self.augment = cfg.train.augment
+        if self.augment:
+            self.aug = RandomShiftsAug(pad=4)
 
-        # Eta - between DDIM (=0 for eval) and DDPM (=1 for training)
-        self.learn_eta = self.model.learn_eta
-        if self.learn_eta:
-            self.eta_update_interval = cfg.train.eta_update_interval
-            self.eta_optimizer = torch.optim.AdamW(
-                self.model.eta.parameters(),
-                lr=cfg.train.eta_lr,
-                weight_decay=cfg.train.eta_weight_decay,
-            )
-            self.eta_lr_scheduler = CosineAnnealingWarmupRestarts(
-                self.eta_optimizer,
-                first_cycle_steps=cfg.train.eta_lr_scheduler.first_cycle_steps,
-                cycle_mult=1.0,
-                max_lr=cfg.train.eta_lr,
-                min_lr=cfg.train.eta_lr_scheduler.min_lr,
-                warmup_steps=cfg.train.eta_lr_scheduler.warmup_steps,
-                gamma=1.0,
-            )
+        # Set obs dim -  we will save the different obs in batch in a dict
+        shape_meta = cfg.shape_meta
+        self.obs_dims = {k: shape_meta.obs[k]["shape"] for k in shape_meta.obs}
 
-        assert self.logprob_batch_size % self.n_envs == 0, "logprob_batch_size must be divisible by n_envs"
-
-    def get_init_obs(self, n_envs):
-        """
-        Get initial observations for the environment.
-        This function is used to reset a dummy environment and get the initial observations.
-        """
-        if self.env_type == "calvin":
-            obs = self.get_init_obs_calvin(n_envs)
-        elif self.env_type == "libero":
-            obs = self.get_init_obs_libero(n_envs)
-        else:
-            raise ValueError(f"Unknown environment type: {self.env_type}")
-        return obs
-
-    def get_init_obs_calvin(self, n_envs):
-        obs = [self.venv.reset()[0] for _ in range(n_envs)]
-        robot_obs = np.array([ob["robot_obs"][-1] for ob in obs])
-        rgb_static = np.array([ob["rgb_static"][-1] for ob in obs])
-        rgb_gripper = np.array([ob["rgb_gripper"][-1] for ob in obs])
-
-        obs = {
-            "robot_obs": robot_obs,
-            "rgb_static": rgb_static,
-            "rgb_gripper": rgb_gripper,
-        }
-        return obs
-
-    def get_init_obs_libero(self, n_envs):
-        # generate n_envs random indices
-        rand_indices = np.random.choice(np.arange(self.env_init_obs["robot_obs"].shape[0]), n_envs, replace=True)
-        robot_obs = self.env_init_obs["robot_obs"][rand_indices]
-        rgb_statics = self.env_init_obs["rgb_statics"][rand_indices]
-        rgb_grippers = self.env_init_obs["rgb_grippers"][rand_indices]
-
-        obs = {
-            "robot_obs": robot_obs,
-            "rgb_static": rgb_statics,
-            "rgb_gripper": rgb_grippers,
-        }
-        return obs
-
-    def get_terminated_from_reward(self, reward):
-        terminated = np.zeros_like(reward)
-        terminated[reward > 0] = 1
-        return terminated.astype(bool)
+        # Gradient accumulation to deal with large GPU RAM usage
+        self.grad_accumulate = cfg.train.grad_accumulate
 
     def run(self):
         # Start training loop
         timer = Timer()
         run_results = []
-        cnt_wm_train_step = 0
-        self.video_writer = None
-        self.itr = 0
-
+        cnt_train_step = 0
+        last_itr_eval = False
+        done_venv = np.zeros((1, self.n_envs))
         while self.itr <= self.n_train_itr:
+            # Prepare video paths for each envs --- only applies for the first set of episodes if allowing reset within iteration and each iteration has multiple episodes from one env
+            options_venv = [{} for _ in range(self.n_envs)]
+            if self.itr % self.render_freq == 0 and self.render_video:
+                for env_ind in range(self.n_render):
+                    options_venv[env_ind]["video_path"] = os.path.join(
+                        self.render_dir, f"itr-{self.itr}_trial-{env_ind}.mp4"
+                    )
+
             # Define train or eval - all envs restart
             if self.itr == 0 or self.itr == self.n_train_itr:
                 eval_mode = True
             else:
                 eval_mode = self.itr % self.val_freq == 0 and not self.force_train
             self.model.eval() if eval_mode else self.model.train()
+            last_itr_eval = eval_mode
 
             if not eval_mode:
-                done_venv = np.zeros((1, self.n_envs))
+                # Reset env before iteration starts (1) if specified, (2) at eval mode, or (3) right after eval mode
+                firsts_trajs = np.zeros((self.n_steps + 1, self.n_envs))
+                self.venv._options = options_venv
+                prev_obs_venv = self.venv.reset()
+                firsts_trajs[0] = 1
+
+                # Holder
                 obs_trajs = {
-                    "state": np.zeros(
+                    k: np.zeros(
                         (
                             self.n_steps,
                             self.n_envs,
                             self.n_cond_step,
-                            self.obs_dim,
+                            *self.obs_dims[k],
                         )
                     )
+                    for k in self.obs_dims
                 }
                 chains_trajs = np.zeros(
                     (
@@ -133,33 +94,17 @@ class TrainMBPPODiffusionAgent(TrainPPOAgent):
                 )
                 terminated_trajs = np.zeros((self.n_steps, self.n_envs))
                 reward_trajs = np.zeros((self.n_steps, self.n_envs))
-                firsts_trajs = np.zeros((self.n_steps + 1, self.n_envs))
-                rgb_static_trajs = np.zeros((self.n_steps, self.n_envs, 64, 64, 3))
-                rgb_gripper_trajs = np.zeros((self.n_steps, self.n_envs, 64, 64, 3))
 
-                # Initialize environment
-                prev_obs_venv = self.get_init_obs(self.n_envs)
-                wm_step_counter = np.zeros((self.n_envs)).astype(int)
-                firsts_trajs[0] = 1
-
-                if self.wme is not None:
-                    for key in prev_obs_venv:
-                        prev_obs_venv[key] = np.expand_dims(prev_obs_venv[key], 1)
-
-                    wm_features, out_state = self.wme.get_zero_wm_features(prev_obs_venv, self.device)
-                    prev_obs_venv = wm_features.cpu().numpy()
-                    in_state = out_state
-
-                if self.save_full_observations:  # state-only
-                    obs_full_trajs = np.empty((0, self.n_envs, self.obs_dim))
-                    obs_full_trajs = np.vstack((obs_full_trajs, prev_obs_venv[:, -1][None]))
-
+                # Collect a set of trajectories from env
                 for step in range(self.n_steps):
                     if step % 10 == 0:
-                        print(f"Processed env step {step} of {self.n_steps}")
+                        print(f"Processed step {step} of {self.n_steps}")
 
+                    # Select action
                     with torch.no_grad():
-                        cond = {"state": torch.from_numpy(prev_obs_venv).float().to(self.device)}
+                        cond = {
+                            key: torch.from_numpy(prev_obs_venv[key]).float().to(self.device) for key in self.obs_dims
+                        }
                         samples = self.model(
                             cond=cond,
                             deterministic=eval_mode,
@@ -168,97 +113,59 @@ class TrainMBPPODiffusionAgent(TrainPPOAgent):
                         output_venv = samples.trajectories.cpu().numpy()  # n_env x horizon x act
                         chains_venv = samples.chains.cpu().numpy()  # n_env x denoising x horizon x act
                     action_venv = output_venv[:, : self.act_steps]
-                    # Apply multi-step in wm action
+
+                    # Apply multi-step action
                     (
                         obs_venv,
                         reward_venv,
-                        dcd_rgb_static,
-                        dcd_rgb_gripper,
-                    ) = self.wme.multi_step(
-                        torch.from_numpy(prev_obs_venv).squeeze().float().to(self.device),
-                        torch.from_numpy(action_venv).float().to(self.device),
-                    )
-                    obs_venv = obs_venv.cpu().numpy()
-                    wm_step_counter += self.act_steps
-                    truncated_venv = wm_step_counter >= self.env.env.max_episode_steps
-                    terminated_venv = self.get_terminated_from_reward(reward_venv)
+                        terminated_venv,
+                        truncated_venv,
+                        info_venv,
+                    ) = self.venv.step(action_venv)
                     done_venv = terminated_venv | truncated_venv
 
-                    obs_trajs["state"][step] = prev_obs_venv
+                    for k in obs_trajs:
+                        obs_trajs[k][step] = prev_obs_venv[k]
                     chains_trajs[step] = chains_venv
                     reward_trajs[step] = reward_venv
                     terminated_trajs[step] = terminated_venv
                     firsts_trajs[step + 1] = done_venv
 
-                    # To render videos later
-                    rgb_static_trajs[step] = dcd_rgb_static
-                    rgb_gripper_trajs[step] = dcd_rgb_gripper
+                    # update for next step
+                    prev_obs_venv = obs_venv
 
-                    cnt_wm_train_step += self.n_envs * self.act_steps
+                    # count steps --- not acounting for done within action chunk
+                    cnt_train_step += self.n_envs * self.act_steps if not eval_mode else 0
 
-                    # If an episode is done, reset environment for that env
-                    if sum(done_venv) > 0:
-                        new_obs_venv = self.get_init_obs(int(sum(done_venv)))
-
-                        # WM Encoder
-                        if self.wme is not None:
-                            for key in new_obs_venv:
-                                new_obs_venv[key] = np.expand_dims(new_obs_venv[key], 1)
-                            wm_features, out_state = self.wme.get_zero_wm_features(new_obs_venv, self.device)
-                            new_obs_venv = wm_features.squeeze().cpu().numpy()
-
-                        obs_venv[done_venv.astype(bool)] = new_obs_venv
-                        wm_step_counter[done_venv.astype(bool)] = 0
-
-                    prev_obs_venv = np.expand_dims(obs_venv, 1)
-
-                avg_episode_reward = np.sum(reward_trajs) / np.sum(firsts_trajs[1:, :])
-                num_episode_finished = np.sum(firsts_trajs[1:, :])
-                obs_venv = {"state": obs_venv}
-
-                # Randomly choose an episode and render it
-                if self.itr % self.render_freq == 0:
-                    train_rgb_static_path = os.path.join(self.render_dir, f"train-rgb-static-{self.itr}.mp4")
-                    train_rgb_gripper_path = os.path.join(self.render_dir, f"train-rgb-gripper-{self.itr}.mp4")
-
-                    if self.video_writer is None:
-                        self.video_writer_rgb_static = imageio.get_writer(
-                            train_rgb_static_path, fps=int(30 / self.act_steps)
-                        )
-                        self.video_writer_rgb_gripper = imageio.get_writer(
-                            train_rgb_gripper_path, fps=int(30 / self.act_steps)
-                        )
-                    train_env_id = np.random.randint(0, self.n_envs)
-                    ep_ends = np.where(firsts_trajs[1:, train_env_id])[0]
-                    c_ = 0
-                    failed = False
-                    while len(ep_ends) == 0:
-                        train_env_id = np.random.randint(0, self.n_envs)
-                        ep_ends = np.where(firsts_trajs[1:, train_env_id])[0]
-                        c_ += 1
-                        if c_ > self.n_envs:
-                            log.info("No terminated episode found for rendering")
-                            failed = True
-                            break
-                    if not failed and len(ep_ends) > 1:
-                        rand_ind = np.random.randint(1, len(ep_ends))
-                        start_ind = ep_ends[rand_ind - 1] + 1
-                        end_ind = ep_ends[rand_ind] + 1
-                        for idx in range(start_ind, end_ind):
-                            self.video_writer_rgb_static.append_data(
-                                rgb_static_trajs[idx, train_env_id].astype("uint8")
-                            )
-                            self.video_writer_rgb_gripper.append_data(
-                                rgb_gripper_trajs[idx, train_env_id].astype("uint8")
-                            )
-                        self.video_writer_rgb_static.close()
-                        self.video_writer_rgb_gripper.close()
-                        self.video_writer_rgb_static = None
-                        self.video_writer_rgb_gripper = None
-                    else:
-                        self.video_writer_rgb_static = None
-                        self.video_writer_rgb_gripper = None
-
+                # Summarize episode reward --- this needs to be handled differently depending on whether the environment is reset after each iteration. Only count episodes that finish within the iteration.
+                episodes_start_end = []
+                for env_ind in range(self.n_envs):
+                    env_steps = np.where(firsts_trajs[:, env_ind] == 1)[0]
+                    for i in range(len(env_steps) - 1):
+                        start = env_steps[i]
+                        end = env_steps[i + 1]
+                        if end - start > 1:
+                            episodes_start_end.append((env_ind, start, end - 1))
+                if len(episodes_start_end) > 0:
+                    reward_trajs_split = [
+                        reward_trajs[start : end + 1, env_ind] for env_ind, start, end in episodes_start_end
+                    ]
+                    num_episode_finished = len(reward_trajs_split)
+                    episode_reward = np.array([np.sum(reward_traj) for reward_traj in reward_trajs_split])
+                    episode_best_reward = episode_reward
+                    avg_episode_reward = np.mean(episode_reward)
+                    avg_best_reward = np.mean(episode_best_reward)
+                    success_rate = np.mean(episode_best_reward >= self.best_reward_threshold_for_success)
+                    episodes_start_end = np.array(episodes_start_end)
+                    avg_episode_length = np.mean(episodes_start_end[:, 2] - episodes_start_end[:, 1] + 1)
+                else:
+                    episode_reward = np.array([])
+                    num_episode_finished = 0
+                    avg_episode_reward = 0
+                    avg_best_reward = 0
+                    success_rate = 0
+                    avg_episode_length = 0
+                    log.info("[WARNING] No episode completed within the iteration!")
             else:
                 episode_rewards = []
                 episode_lengths = []
@@ -292,33 +199,23 @@ class TrainMBPPODiffusionAgent(TrainPPOAgent):
                         print(f"Processed episode {i} of {total_episodes_eval}")
                     prev_obs_venv = {}
                     if self.env_type == "calvin":
-                        prev_obs_venv["state"], _ = self.env.reset(
+                        prev_obs_venv, _ = self.env.reset(
                             robot_obs=robot_obs[i],
                             scene_obs=scene_obs[i],
                             options=options_venv[i],
                         )
                     elif self.env_type == "libero":
-                        prev_obs_venv["state"], _ = self.env.reset(
+                        prev_obs_venv, _ = self.env.reset(
                             init_states=init_states[i],
                             options=options_venv[i],
                         )
 
-                    # WM Encoder
-                    if self.wme is not None:
-                        for key in prev_obs_venv["state"]:
-                            prev_obs_venv["state"][key] = np.expand_dims(
-                                np.expand_dims(prev_obs_venv["state"][key][-1, :], 0), 0
-                            )
-
-                        wm_features, out_state = self.wme.get_zero_wm_features(prev_obs_venv["state"], self.device)
-                        prev_obs_venv["state"] = wm_features.cpu().numpy()
-                        in_state = out_state
-                        prev_done_venv = np.zeros((1)).astype(bool)
-
                     for step in range(self.n_steps):
-                        # Select action
                         with torch.no_grad():
-                            cond = {"state": torch.from_numpy(prev_obs_venv["state"]).float().to(self.device)}
+                            cond = {
+                                key: torch.from_numpy(prev_obs_venv[key]).unsqueeze(0).float().to(self.device)
+                                for key in self.obs_dims
+                            }
                             samples = self.model(
                                 cond=cond,
                                 deterministic=eval_mode,
@@ -342,22 +239,7 @@ class TrainMBPPODiffusionAgent(TrainPPOAgent):
                             episode_lengths.append(step)
                             break
 
-                        # WM Encoder
-                        if self.wme is not None:
-                            for key in obs_venv:
-                                obs_venv[key] = np.expand_dims(obs_venv[key], 0)
-                            wm_features, out_state = self.wme.get_hist_wm_features(
-                                obs_venv,
-                                action_venv,
-                                prev_done_venv,
-                                in_state,
-                                self.device,
-                            )
-                            prev_done_venv = np.array(done_venv).astype(bool)
-                            obs_venv = wm_features.cpu().numpy()
-                            in_state = out_state
-
-                        prev_obs_venv = {"state": obs_venv}
+                        prev_obs_venv = obs_venv
 
                 avg_episode_reward = np.sum(episode_rewards) / total_episodes_eval
                 avg_episode_length = np.sum(episode_lengths) / total_episodes_eval
@@ -368,21 +250,36 @@ class TrainMBPPODiffusionAgent(TrainPPOAgent):
             # Update models
             if not eval_mode:
                 with torch.no_grad():
+                    # apply image randomization
+                    obs_trajs["rgb"] = torch.from_numpy(obs_trajs["rgb"]).float().to(self.device)
                     obs_trajs["state"] = torch.from_numpy(obs_trajs["state"]).float().to(self.device)
+                    if self.augment:
+                        rgb = einops.rearrange(
+                            obs_trajs["rgb"],
+                            "s e t c h w -> (s e t) c h w",
+                        )
+                        rgb = self.aug(rgb)
+                        obs_trajs["rgb"] = einops.rearrange(
+                            rgb,
+                            "(s e t) c h w -> s e t c h w",
+                            s=self.n_steps,
+                            e=self.n_envs,
+                        )
 
                     # Calculate value and logprobs - split into batches to prevent out of memory
                     num_split = math.ceil(self.n_envs * self.n_steps / self.logprob_batch_size)
                     obs_ts = [{} for _ in range(num_split)]
-                    obs_k = einops.rearrange(
-                        obs_trajs["state"],
-                        "s e ... -> (s e) ...",
-                    )
-                    obs_ts_k = torch.split(obs_k, self.logprob_batch_size, dim=0)
-                    for i, obs_t in enumerate(obs_ts_k):
-                        obs_ts[i]["state"] = obs_t
+                    for k in obs_trajs:
+                        obs_k = einops.rearrange(
+                            obs_trajs[k],
+                            "s e ... -> (s e) ...",
+                        )
+                        obs_ts_k = torch.split(obs_k, self.logprob_batch_size, dim=0)
+                        for i, obs_t in enumerate(obs_ts_k):
+                            obs_ts[i][k] = obs_t
                     values_trajs = np.empty((0, self.n_envs))
                     for obs in obs_ts:
-                        values = self.model.critic(obs).cpu().numpy().flatten()
+                        values = self.model.critic(obs, no_augment=True).cpu().numpy().flatten()
                         values_trajs = np.vstack((values_trajs, values.reshape(-1, self.n_envs)))
                     chains_t = einops.rearrange(
                         torch.from_numpy(chains_trajs).float().to(self.device),
@@ -414,12 +311,14 @@ class TrainMBPPODiffusionAgent(TrainPPOAgent):
                         reward_trajs = reward_trajs_transpose.T
 
                     # bootstrap value with GAE if not terminal - apply reward scaling with constant if specified
-                    obs_venv_ts = {"state": torch.from_numpy(obs_venv["state"]).float().to(self.device)}
+                    obs_venv_ts = {
+                        key: torch.from_numpy(obs_venv[key]).float().to(self.device) for key in self.obs_dims
+                    }
                     advantages_trajs = np.zeros_like(reward_trajs)
                     lastgaelam = 0
                     for t in reversed(range(self.n_steps)):
                         if t == self.n_steps - 1:
-                            nextvalues = self.model.critic(obs_venv_ts).reshape(1, -1).cpu().numpy()
+                            nextvalues = self.model.critic(obs_venv_ts, no_augment=True).reshape(1, -1).cpu().numpy()
                         else:
                             nextvalues = values_trajs[t + 1]
                         nonterminal = 1.0 - terminated_trajs[t]
@@ -437,10 +336,11 @@ class TrainMBPPODiffusionAgent(TrainPPOAgent):
 
                 # k for environment step
                 obs_k = {
-                    "state": einops.rearrange(
-                        obs_trajs["state"],
+                    k: einops.rearrange(
+                        obs_trajs[k],
                         "s e ... -> (s e) ...",
                     )
+                    for k in obs_trajs
                 }
                 chains_k = einops.rearrange(
                     torch.tensor(chains_trajs).float().to(self.device),
@@ -464,7 +364,7 @@ class TrainMBPPODiffusionAgent(TrainPPOAgent):
                         start = batch * self.batch_size
                         end = start + self.batch_size
                         inds_b = inds_k[start:end]  # b for batch
-                        obs_b = {"state": obs_k["state"][inds_b]}
+                        obs_b = {k: obs_k[k][inds_b] for k in obs_k}
                         chains_b = chains_k[inds_b]
                         returns_b = returns_k[inds_b]
                         values_b = values_k[inds_b]
@@ -500,11 +400,8 @@ class TrainMBPPODiffusionAgent(TrainPPOAgent):
                         clipfracs += [clipfrac]
 
                         # update policy and critic
-                        self.actor_optimizer.zero_grad()
-                        self.critic_optimizer.zero_grad()
-                        if self.learn_eta:
-                            self.eta_optimizer.zero_grad()
                         loss.backward()
+                        # if (batch + 1) % self.grad_accumulate == 0:
                         if self.itr >= self.n_critic_warmup_itr:
                             if self.max_grad_norm is not None:
                                 torch.nn.utils.clip_grad_norm_(
@@ -515,10 +412,19 @@ class TrainMBPPODiffusionAgent(TrainPPOAgent):
                             if self.learn_eta and batch % self.eta_update_interval == 0:
                                 self.eta_optimizer.step()
                         self.critic_optimizer.step()
+                        self.actor_optimizer.zero_grad()
+                        self.critic_optimizer.zero_grad()
+                        if self.learn_eta:
+                            self.eta_optimizer.zero_grad()
+                        log.info(f"run grad update at batch {batch}")
                         log.info(f"approx_kl: {approx_kl}, update_epoch: {update_epoch}, num_batch: {num_batch}")
 
                         # Stop gradient update if KL difference reaches target
-                        if self.target_kl is not None and approx_kl > self.target_kl:
+                        if (
+                            self.target_kl is not None
+                            and approx_kl > self.target_kl
+                            and self.itr >= self.n_critic_warmup_itr
+                        ):
                             flag_break = True
                             break
                     if flag_break:
@@ -528,16 +434,6 @@ class TrainMBPPODiffusionAgent(TrainPPOAgent):
                 y_pred, y_true = values_k.cpu().numpy(), returns_k.cpu().numpy()
                 var_y = np.var(y_true)
                 explained_var = np.nan if var_y == 0 else 1 - np.var(y_true - y_pred) / var_y
-
-            # Plot state trajectories (only in D3IL)
-            if self.itr % self.render_freq == 0 and self.n_render > 0 and self.traj_plotter is not None:
-                self.traj_plotter(
-                    obs_full_trajs=obs_full_trajs,
-                    n_render=self.n_render,
-                    max_episode_steps=self.max_episode_steps,
-                    render_dir=self.render_dir,
-                    itr=self.itr,
-                )
 
             # Update lr, min_sampling_std
             if self.itr >= self.n_critic_warmup_itr:
@@ -556,14 +452,9 @@ class TrainMBPPODiffusionAgent(TrainPPOAgent):
             run_results.append(
                 {
                     "itr": self.itr,
-                    "step": cnt_wm_train_step,
+                    "step": cnt_train_step,
                 }
             )
-            if self.save_trajs:
-                run_results[-1]["obs_full_trajs"] = obs_full_trajs
-                run_results[-1]["obs_trajs"] = obs_trajs
-                run_results[-1]["chains_trajs"] = chains_trajs
-                run_results[-1]["reward_trajs"] = reward_trajs
             if self.itr % self.log_freq == 0:
                 time = timer()
                 run_results[-1]["time"] = time
@@ -577,10 +468,9 @@ class TrainMBPPODiffusionAgent(TrainPPOAgent):
                                 "success rate - eval": success_rate,
                                 "avg episode reward - eval": avg_episode_reward,
                                 "avg best reward - eval": avg_best_reward,
-                                "num episode - eval": num_episode_finished,
                                 "avg episode length - eval": avg_episode_length,
-                                "total env steps - eval": cnt_wm_train_step,
-                                "itr - eval": self.itr,
+                                "num episode - eval": num_episode_finished,
+                                "total env steps - eval": cnt_train_step,
                             },
                             step=self.itr,
                             commit=False,
@@ -588,7 +478,7 @@ class TrainMBPPODiffusionAgent(TrainPPOAgent):
                         if self.n_render > 0:
                             if self.n_render == 1:
                                 wandb.log(
-                                    {"video - eval": wandb.Video(options_venv[rand_ind]["video_path"], format="mp4")},
+                                    {"video - eval": wandb.Video(options_venv[rand_ind]["video_path"])},
                                     step=self.itr,
                                     commit=False,
                                 )
@@ -596,22 +486,14 @@ class TrainMBPPODiffusionAgent(TrainPPOAgent):
                                 # worry about this case later
                                 for env_ind in range(self.n_render):
                                     wandb.log(
-                                        {
-                                            f"video - {env_ind}": wandb.Video(
-                                                options_venv[env_ind]["video_path"], format="mp4"
-                                            )
-                                        },
+                                        {f"video - {env_ind}": wandb.Video(options_venv[env_ind]["video_path"])},
                                         step=self.itr,
                                         commit=False,
                                     )
                         elif self.n_render == -1:
                             for env_ind in range(len(options_venv)):
                                 wandb.log(
-                                    {
-                                        f"video - {env_ind}": wandb.Video(
-                                            options_venv[env_ind]["video_path"], format="mp4"
-                                        )
-                                    },
+                                    {f"video - {env_ind}": wandb.Video(options_venv[env_ind]["video_path"])},
                                     step=self.itr,
                                     commit=False,
                                 )
@@ -620,25 +502,12 @@ class TrainMBPPODiffusionAgent(TrainPPOAgent):
                     run_results[-1]["eval_best_reward"] = avg_best_reward
                 else:
                     log.info(
-                        f"{self.itr}: step {cnt_wm_train_step:8d} | loss {loss:8.4f} | pg loss {pg_loss:8.4f} | value loss {v_loss:8.4f} | bc loss {bc_loss:8.4f} | reward {avg_episode_reward:8.4f} | eta {eta:8.4f} | t:{time:8.4f}"
+                        f"{self.itr}: step {cnt_train_step:8d} | loss {loss:8.4f} | pg loss {pg_loss:8.4f} | value loss {v_loss:8.4f} | bc loss {bc_loss:8.4f} | reward {avg_episode_reward:8.4f} | eta {eta:8.4f} | t:{time:8.4f}"
                     )
                     if self.use_wandb:
-                        if self.itr % self.render_freq == 0:
-                            if os.path.exists(train_rgb_static_path):
-                                wandb.log(
-                                    {"video - train rgb static": wandb.Video(train_rgb_static_path, format="mp4")},
-                                    step=self.itr,
-                                    commit=False,
-                                )
-                            if os.path.exists(train_rgb_gripper_path):
-                                wandb.log(
-                                    {"video - train rgb gripper": wandb.Video(train_rgb_gripper_path, format="mp4")},
-                                    step=self.itr,
-                                    commit=False,
-                                )
                         wandb.log(
                             {
-                                "total env step": cnt_wm_train_step,
+                                "total env step": cnt_train_step,
                                 "loss": loss,
                                 "pg loss": pg_loss,
                                 "value loss": v_loss,
@@ -653,7 +522,6 @@ class TrainMBPPODiffusionAgent(TrainPPOAgent):
                                 "diffusion - min sampling std": diffusion_min_sampling_std,
                                 "actor lr": self.actor_optimizer.param_groups[0]["lr"],
                                 "critic lr": self.critic_optimizer.param_groups[0]["lr"],
-                                "itr": self.itr,
                             },
                             step=self.itr,
                             commit=True,

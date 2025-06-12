@@ -4,19 +4,18 @@ defaults:
 hydra:
   run:
     dir: ${logdir}
-_target_: diwa.agent.finetune.train_mb_ppo_diffusion_agent_visionwm.TrainMBPPODiffusionAgent
+_target_: diwa.agent.finetune.train_ppo_diffusion_agent.TrainPPODiffusionAgent
 
-name: ${env_name}_ft_diffusion_mlp_feat_ta${horizon_steps}_td${denoising_steps}_tdf${ft_denoising_steps}
-logdir: ${oc.env:DIWA_LOG_DIR}/calvin-finetune-feat/${name}/${now:%Y-%m-%d}_${now:%H-%M-%S}_${seed}
-
-base_policy_path: ${oc.env:DIWA_LOG_DIR}/calvin-pretrain-feat/${env_name}_pre_diffusion_mlp_feat_ta4_td20/2025-06-03_16-20-07_42/checkpoint/state_5000.pt
-normalization_path: null
+name: ${env_name}_ft_diffusion_mlp_ta${horizon_steps}_td${denoising_steps}_tdf${ft_denoising_steps}
+logdir: ${oc.env:DIWA_LOG_DIR}/calvin-finetune-state/${name}/${now:%Y-%m-%d}_${now:%H-%M-%S}_${seed}
+base_policy_path: ${oc.env:DIWA_LOG_DIR}/calvin-pretrain-state/${env_name}_pre_diffusion_mlp_state_ta4_td20/2025-06-12_18-20-44_42/checkpoint/state_3000.pt  # use 8000 for comparing policy parameterizations
+normalization_path: ${oc.env:DIWA_DATA_DIR}/expert/calvin-state-50/${env_name}/normalization.npz
 
 seed: 42
 device: cuda:0
 env_name: open_drawer
 env_type: calvin
-obs_dim: 2048
+obs_dim: 51
 action_dim: 7
 denoising_steps: 20
 ft_denoising_steps: 10
@@ -25,27 +24,18 @@ horizon_steps: 4
 act_steps: ${horizon_steps}
 
 comment: ""
-offline_method: true
-rgb_obs: true
+offline_method: false
+rgb_obs: false
 
 wandb:
   entity: ${oc.env:DIWA_WANDB_ENTITY}
   project: calvin-${env_name}-finetune
-  run: ${comment}-vision-feat-${now:%H-%M-%S}-${name}
+  run: ${comment}-${now:%H-%M-%S}_${name}
   dir: ${logdir}
-
-wm:
-  _target_: diwa.wm.wrapper.visionwm_cls.VisionWMWrapper
-  ckpt_path: ${oc.env:DIWA_LOG_DIR}/wm/ckpts/vision.ckpt
-  device: ${device}
-  stats_path: ${oc.env:DIWA_DATA_DIR}/calvin/task_D_D_rgb64_rot6d/statistics_minmax.yaml
-  temperature: 1.0
-  skill: ${env_name}
-  rew_cls_path: ${oc.env:DIWA_LOG_DIR}/rewcls/${env_name}/model.pth
 
 env:
   n_envs: 50
-  n_render: -1 # -1 means render every eval episode
+  n_render: 1 # -1 means render every eval episode
   name: ${env_name}
   env_type: ${env_type}
   best_reward_threshold_for_success: 1
@@ -53,15 +43,11 @@ env:
   save_video: true
   load_scene_from_dataset: null
   eval_scene_from_dataset: ${oc.env:DIWA_DATA_DIR}/expert/calvin-state-50/${env_name}/val_robot_obs_scene_obs_starts_1.npz
-  # The following multistep parameters are important so that we can estimate 
-  # a more accurate WM state from the history of observations & actions
-  n_obs_steps: ${horizon_steps}
-  n_action_steps: ${horizon_steps}
 
 train:
-  n_train_itr: 800
+  n_train_itr: 750
   n_critic_warmup_itr: 2
-  n_steps: 36 # ${eval:'${env.max_episode_steps} / ${horizon_steps}'}
+  n_steps: 36
   gamma: 0.999
   actor_lr: 1e-5
   actor_weight_decay: 0
@@ -76,9 +62,9 @@ train:
     warmup_steps: 10
     min_lr: 1e-3
   save_model_freq: 100
-  val_freq: 25
+  val_freq: 8
   render:
-    freq: 26
+    freq: 1
     num: ${env.n_render}
   # PPO specific
   reward_scale_running: True
@@ -88,8 +74,6 @@ train:
   update_epochs: 10
   vf_coef: 0.5
   target_kl: 1
-  bc_loss_coeff: 0.0
-  use_bc_loss: False
 
 model:
   _target_: diwa.model.diffusion.diffusion_ppo.PPODiffusion

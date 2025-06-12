@@ -23,6 +23,9 @@ def make_rewcls_dataset(cfg, wmw, split):
         wmw.skill = skill_name
 
         feat_data_path = Path(cfg.feat_data_dir) / skill_name / f"{split}.npz"
+        if not feat_data_path.exists():
+            print(f"Feature data for {skill_name} in {split} split does not exist. Skipping.")
+            continue
         feat_data = np.load(feat_data_path, allow_pickle=True)
 
         rewards_data_path = Path(cfg.rewards_data_dir) / skill_name / f"{split}_rewards.npz"
@@ -101,7 +104,7 @@ def make_rewcls_dataset(cfg, wmw, split):
         )
 
 
-@hydra.main(version_base="1.3", config_path="../../config/rewcls", config_name="rewcls_dataset_libero")
+@hydra.main(version_base="1.3", config_path="../../config/rewcls", config_name="rewcls_dataset")
 def main(cfg: DictConfig):
     feat_data_dir = Path(cfg.feat_data_dir)
     rewards_data_dir = Path(cfg.rewards_data_dir)

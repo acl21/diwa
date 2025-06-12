@@ -33,17 +33,19 @@ class LIBEROLowDimWrapper(LIBEROBaseWrapper):
         """
         Returns the observation space of the environment.
         """
-        obs_dim = 51
+        obs_dim = 66
         return gym.spaces.Box(low=-1, high=1, shape=(obs_dim,))
 
     def get_obs(self):
         """
         Returns the state observation of the robot and scene.
         """
-        state_obs = self.get_state_obs()
-        state_obs = state_obs["scene_obs"]
+        obs = self.get_state_obs()
+        robot_obs = obs["robot_obs"]
+        scene_obs = obs["scene_obs"]
+        obs = np.concatenate([robot_obs, scene_obs])
 
         if self.normalize:
-            state_obs = self.normalize_obs(state_obs)
+            obs = self.normalize_obs(obs)
 
-        return state_obs
+        return obs

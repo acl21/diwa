@@ -1,3 +1,7 @@
+"""
+Unmodified from https://github.com/nematoli/lumos
+"""
+
 import logging
 import os
 from pathlib import Path

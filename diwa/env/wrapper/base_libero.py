@@ -50,7 +50,7 @@ class LIBEROBaseWrapper(OffScreenRenderEnv):
         # set up normalization
         self.normalize = normalization_path is not None
         if self.normalize:
-            normalization_data = torch.load(normalization_path, weights_only=False)
+            normalization_data = np.load(normalization_path)
             self.obs_min = normalization_data["obs_min"]
             self.obs_max = normalization_data["obs_max"]
             self.action_min = normalization_data["action_min"]

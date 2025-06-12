@@ -4,31 +4,15 @@ import os
 import numpy as np
 import torch
 
+from diwa.env.runner.base_runner import BaseEnvRunner
 import wandb
 
 log = logging.getLogger(__name__)
 
 
-class CALVINEnvRunner(object):
+class EnvRunner(BaseEnvRunner):
     def __init__(self):
-        self.n_envs = None
-        self.n_render = None
-        self.n_steps = None
-        self.use_wandb = None
-        self.render_dir = None
-        self.reset_at_iteration = None
-        self.act_steps = None
-        self.render_video = None
-        self.best_reward_threshold_for_success = None
-
-    def init_values(self, cfg):
-        self.n_envs = cfg.env.n_envs
-        self.n_render = cfg.env.n_render
-        self.n_steps = cfg.env.max_episode_steps
-        self.use_wandb = cfg.wandb is not None
-        self.act_steps = cfg.act_steps
-        self.render_video = cfg.env.save_video
-        self.best_reward_threshold_for_success = cfg.env.best_reward_threshold_for_success
+        super().__init__()
 
     @torch.no_grad()
     def run(self, epoch, model, venv, wme):
@@ -37,9 +21,13 @@ class CALVINEnvRunner(object):
 
         episode_rewards = []
         episode_lengths = []
-        robot_obs = venv.robot_obs
-        scene_obs = venv.scene_obs
-        total_episodes_eval = robot_obs.shape[0]
+        if self.env_type == "calvin":
+            robot_obs = venv.robot_obs
+            scene_obs = venv.scene_obs
+            total_episodes_eval = robot_obs.shape[0]
+        elif self.env_type == "libero":
+            init_states = venv.init_states
+            total_episodes_eval = init_states.shape[0]
         options_venv = [{} for _ in range(total_episodes_eval)]
         rand_ind = np.random.randint(0, total_episodes_eval)
         options_venv[rand_ind] = {
@@ -53,11 +41,17 @@ class CALVINEnvRunner(object):
             if i % 10 == 0:
                 print(f"Processed episode {i} of {total_episodes_eval}")
             prev_obs_venv = {}
-            prev_obs_venv["state"], _ = venv.reset(
-                robot_obs=robot_obs[i],
-                scene_obs=scene_obs[i],
-                options=options_venv[i],
-            )
+            if self.env_type == "calvin":
+                prev_obs_venv["state"], _ = venv.reset(
+                    robot_obs=robot_obs[i],
+                    scene_obs=scene_obs[i],
+                    options=options_venv[i],
+                )
+            elif self.env_type == "libero":
+                prev_obs_venv["state"], _ = venv.reset(
+                    init_states=init_states[i],
+                    options=options_venv[i],
+                )
 
             # WM Encoder
             if wme is not None:

@@ -5,3 +5,4 @@ skills_list: ["open_drawer", "close_drawer", "move_slider_left", "move_slider_ri
 fields_to_extract: ["features", "rel_actions"]
 n_episodes: 50 # Randomly chosen, use -1 for all episodes
 step_len: 1
+seed: 42
