@@ -28,7 +28,7 @@ rgb_obs: true
 wandb:
   entity: ${oc.env:DIWA_WANDB_ENTITY}
   project: calvin-${env_name}-pretrain
-  run: ${comment}-vision-feat-${now:%H-%M-%S}_${name}
+  run: ${comment}-vision-feat-${now:%H-%M-%S}-${name}
   dir: ${logdir}
 
 train:

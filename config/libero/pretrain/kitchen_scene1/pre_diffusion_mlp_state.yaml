@@ -25,7 +25,7 @@ rgb_obs: false
 wandb:
   entity: ${oc.env:DPPO_WANDB_ENTITY}
   project: libero-${env_name}-pretrain
-  run: ${comment}-${now:%H-%M-%S}_${name}
+  run: ${comment}-${now:%H-%M-%S}-${name}
   dir: ${logdir}
 
 train:

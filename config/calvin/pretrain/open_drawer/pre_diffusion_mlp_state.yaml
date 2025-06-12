@@ -26,9 +26,9 @@ comment: ""
 rgb_obs: false
 
 wandb:
-  entity: ${oc.env:DPPO_WANDB_ENTITY}
+  entity: ${oc.env:DIWA_WANDB_ENTITY}
   project: calvin-${env_name}-pretrain
-  run: ${comment}-${now:%H-%M-%S}_${name}
+  run: ${comment}-${now:%H-%M-%S}-${name}
   dir: ${logdir}
 
 train:

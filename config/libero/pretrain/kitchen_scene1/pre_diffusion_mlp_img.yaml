@@ -27,7 +27,7 @@ stacked_obs: true
 wandb:
   entity: ${oc.env:DIWA_WANDB_ENTITY}
   project: libero-${env_name}-pretrain
-  run: ${comment}_${now:%H-%M-%S}_${name}
+  run: ${comment}-${now:%H-%M-%S}-${name}
   dir: ${logdir}
 
 shape_meta:
