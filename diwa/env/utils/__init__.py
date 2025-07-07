@@ -143,7 +143,7 @@ def make_libero_env(
     hybrid_obs=False,
     stacked_obs=False,
 ):
-    from diwa.env.utils.custom_subprocvec import CustomSubprocVecEnv
+    from diwa.env.utils.custom_subprocvec_libero import SubprocVectorEnv
     from diwa.env.wrapper.multistep import MultiStepWrapper
 
     if rgb_obs:
@@ -202,4 +202,4 @@ def make_libero_env(
             )
 
         env_fns = [_make_env for _ in range(num_envs)]
-        return CustomSubprocVecEnv(env_fns), eval_env_ms
+        return SubprocVectorEnv(env_fns, wait_num=0), eval_env_ms
