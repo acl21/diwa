@@ -1,6 +1,6 @@
 # DiWA: Diffusion Policy Adaptation with World Models
 
-[[Paper]()]&nbsp;&nbsp;[[Website]()]
+[[Paper]()]&nbsp;&nbsp;[[Website](https://diwa.cs.uni-freiburg.de/)]
 
 [Akshay L Chandra](https://akshaychandra.com/)<sup>1</sup>, [Iman Nematollahi](https://imanema.com/)<sup>1</sup>, [Chenguang Huang](https://scholar.google.com/citations?user=_rcR8TAAAAAJ&hl=en)<sup>2</sup>, [Tim Welschehold](https://rl.uni-freiburg.de/people/welschehold)<sup>1</sup> [Wolfram Burgard](https://scholar.google.com/citations?user=zj6FavAAAAAJ&hl=en)<sup>2</sup>, [Abhinav Valada](https://rl.uni-freiburg.de/people/valada)<sup>1</sup>
 
@@ -99,7 +99,7 @@ If you find DiWA useful in your work, please leave a ⭐ and consider citing our
 @article{chandra2025diwa,
     title={DiWA: Diffusion Policy Adaptation with World Models},
     author={Chandra, Akshay L and Nematollahi, Iman and Huang, Chenguang and Welschehold, Tim and Burgard, Wolfram and Valada, Abhinav},
-    journal={},
+    journal={Preprint},
     year={2025},
 }
 ```

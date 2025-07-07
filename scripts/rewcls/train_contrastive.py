@@ -173,7 +173,7 @@ def train_model(cfg):
     print("Model saved to", os.path.join(cfg.model_out_dir, cfg.model_save_name))
 
 
-@hydra.main(version_base="1.3", config_path="../../config/rewcls", config_name="contrastive_libero")
+@hydra.main(version_base="1.3", config_path="../../config/rewcls", config_name="contrastive")
 def main(cfg: DictConfig):
     train_data_path = Path(cfg.train_data_path)
     model_out_dir = Path(cfg.model_out_dir)

@@ -28,7 +28,7 @@ python scripts/dataset/extract_expert_demos_feat.py
 
 Also, to reproduce hybrid or state world model baseline experiments, first extract expert demonstration with images/privilege state, run:
 ```bash
-python scripts/dataset/extract_expert_demos_<img/state>.py
+python scripts/dataset/extract_expert_demos_<img|state>.py
 ```
 
 ### 3. Class-Balanced Data for Reward Classifier Training
@@ -50,7 +50,7 @@ python LIBERO/benchmark_scripts/download_libero_datasets.py --download-dir /path
 
 ### 0.1. Regenerate LIBERO-90 with `256 x 256` Observations
 
-We regenerate LIBERO-90 data by rendering the environment at `256 x 256` size (this is a bit useless as we resize them back to `64 x 64` for world model training) first. We did this for reasons I cannot explain here. To regenerate, run:
+We regenerate LIBERO-90 data by rendering the environment at `256 x 256` size (this is a bit useless as we resize them back to `64 x 64` for world model training) first. We did this for reasons we cannot explain here. To regenerate, run:
 ```bash
 python scripts/dataset/regenerate_libero_dataset.py
 ```

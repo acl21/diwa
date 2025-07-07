@@ -14,7 +14,6 @@ def make_rewcls_dataset(cfg, wmw, split):
     """
     Creates a dataset to train the reward classifier.
     This function only saves the latent states with the corresponding binary labels.
-    The labels are automatically generated based on the privileged state.
     """
     print(f"Creating reward classifier dataset for {split} split...")
 

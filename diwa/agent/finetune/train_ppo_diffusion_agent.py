@@ -237,7 +237,7 @@ class TrainPPODiffusionAgent(TrainPPOAgent):
                         )
                     elif self.env_type == "libero":
                         prev_obs_venv["state"], _ = self.env.reset(
-                            init_state=init_states[i],
+                            init_states=init_states[i],
                             options=options_venv[i],
                         )
 
