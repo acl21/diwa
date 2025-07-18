@@ -1,0 +1,20 @@
+skill_name: "open_drawer"
+device: "cuda:0"
+logdir: ${oc.env:DIWA_LOG_DIR}/rewcls/${skill_name}/
+comment: ${skill_name}
+wandb:
+  entity: ${oc.env:DIWA_WANDB_ENTITY}
+  project: reward-classifier
+  run: ${comment}-img-contrastive-${now:%H-%M-%S}
+  dir: ${logdir}
+# dataset paths
+train_data_path: ${oc.env:DIWA_DATA_DIR}/expert/calvin-img224-50/${skill_name}/rewcls_img_train_balanced_10.npz
+val_data_path: ${oc.env:DIWA_DATA_DIR}/expert/calvin-img224-50/${skill_name}/rewcls_img_val.npz
+model_out_dir: ${logdir}
+model_save_name: "model_img.pth"
+# hyperparameters
+batch_size: 32
+num_epochs: 100
+lr: 1e-6
+temperature: 0.5
+alpha: 0.5

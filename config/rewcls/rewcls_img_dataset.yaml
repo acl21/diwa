@@ -1,0 +1,7 @@
+skills_list: ["open_drawer", "close_drawer", "move_slider_left", "move_slider_right", "turn_on_lightbulb", "turn_off_lightbulb", "turn_on_led", "turn_off_led"]
+device: "cuda:0"
+# dataset paths
+img_data_dir: ${oc.env:DIWA_DATA_DIR}/expert/calvin-img224-50/
+rewards_data_dir: ${oc.env:DIWA_DATA_DIR}/expert/calvin-state-raw-50/
+data_out_dir: ${img_data_dir}
+data_out_prefix: "rewcls_img"

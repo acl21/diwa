@@ -11,7 +11,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 
 from diwa.dataset.rewcls_dataset import RewClsDataset
-from diwa.model.rewcls.contrastive import ContrastiveModel
+from diwa.model.rewcls.resnet_contrastive import ResNetClassifier
 import wandb
 
 
@@ -65,7 +65,7 @@ def train_model(cfg):
         val_dataset = None
         val_dataloader = None
 
-    model = ContrastiveModel(input_dim=train_dataset.X.shape[1])
+    model = ResNetClassifier()
     model.to(cfg.device)
     optimizer = optim.Adam(model.parameters(), lr=cfg.lr)
     ce_criterion = nn.CrossEntropyLoss()
@@ -173,7 +173,7 @@ def train_model(cfg):
     print("Model saved to", os.path.join(cfg.model_out_dir, cfg.model_save_name))
 
 
-@hydra.main(version_base="1.3", config_path="../../config/rewcls", config_name="contrastive")
+@hydra.main(version_base="1.3", config_path="../../config/rewcls", config_name="contrastive_img")
 def main(cfg: DictConfig):
     train_data_path = Path(cfg.train_data_path)
     model_out_dir = Path(cfg.model_out_dir)

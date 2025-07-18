@@ -1,6 +1,6 @@
 # DiWA: Diffusion Policy Adaptation with World Models
 
-[[Paper]()]&nbsp;&nbsp;[[Website]()]
+[[Paper]()]&nbsp;&nbsp;[[Website](https://diwa.cs.uni-freiburg.de/)]
 
 [Akshay L Chandra](https://akshaychandra.com/)<sup>1</sup>, [Iman Nematollahi](https://imanema.com/)<sup>1</sup>, [Chenguang Huang](https://scholar.google.com/citations?user=_rcR8TAAAAAJ&hl=en)<sup>2</sup>, [Tim Welschehold](https://rl.uni-freiburg.de/people/welschehold)<sup>1</sup> [Wolfram Burgard](https://scholar.google.com/citations?user=zj6FavAAAAAJ&hl=en)<sup>2</sup>, [Abhinav Valada](https://rl.uni-freiburg.de/people/valada)<sup>1</sup>
 
@@ -37,7 +37,7 @@ git submodule update --init --recursive
     ```
 - **Submodule:** `calvin_env`
 
-    This repository inclues `https://github.com/mees/calvin_env/` as a submodule for simulation experiments, tracking its `main` branch.
+    This repository inclues `https://github.com/mees/calvin_env/` as a submodule for simulation experiments, tracking its `main` branch. 
 
 - **Submoudle:** `LIBERO`
     
@@ -53,19 +53,17 @@ git submodule update --init --recursive
 cd DIWA_ROOT_DIR
 conda create -n diwa python=3.10
 conda activate diwa
-sh install.sh
+sh install.sh 
 ```
 
 ## Usage
 ### 0. Dataset
-To download and preprocess datasets for DiWA, please follow [this guide](dataset/README.md).
+To download and preprocess datasets for DiWA, please follow A.0 and A.1 [here](dataset/README.md#a-calvin).
 
 ### 1. World Model
 **Note**: (TODO) You may skip world model training if you would like to use the default checkpoints (available for download).
 
 #### 1.1 Training
-Before running the following, see A.1 [here](dataset/README.md#1-play-data-for-world-model-training).
-
 ```bash
 python scripts/train_wm.py trainer.devices=[<GPU-ID>]
 ```
@@ -78,20 +76,28 @@ python scripts/featurizer.py device=<GPU-ID>
 (TODO)
 ```
 ### 2. Diffusion Policy Training
-**Note**: (TODO) You may skip pre-training if you would like to use the default checkpoint (available for download) for fine-tuning. Before running the following, see A.2 [here](dataset/README.md#2-expert-data-for-diffusion-policy-training). All the configs for pre-training can be found under `config/<env>/pretrain/`.
+
+**Note**: (TODO) You may skip pre-training if you would like to use the default checkpoints (available for download) for fine-tuning. 
+
+Before pre-training, please extract the featurized expert data with A.2 [here](dataset/README.md#a2-extract-expert-data-for-diffusion-policy-training). All configs relevant for pre-training can be found under `config/<env>/pretrain/<skill-name>`. To pretrain CALVIN's `close_drawer` skill, run:
 ```bash
 python scripts/run.py --config-name=pre_diffusion_mlp_feat_vision --config-dir=config/calvin/pretrain/close_drawer
 ```
 ### 3. Reward Estimation
-Before running the following, see A.3 [here](dataset/README.md#3-class-balanced-data-for-reward-classifier-training).
+Before training the reward classifier, please generate the class-balanced classification data with A.3 [here](dataset/README.md#a3-generate-class-balanced-data-for-reward-classifier-training).
 ```bash
 python scripts/rewcls/train_contrastive.py
 ```
 ### 4. Fine-tuning inside World Model
-All the configs can be found under `config/<env>/finetune/`.
+All configs relevant for fine-tuning can be found under `config/<env>/finetune/<skill-name>`. Set `base_policy_path` to the relevant pretrained policy checkpoint. To fine-tune CALVIN's `close_drawer` skill, run:
 ```bash
 python scripts/run.py --config-name=ft_mb_ppo_diffusion_mlp_feat_vision --config-dir=cfg/calvin/finetune/close_drawer
 ```
+
+## Known Issues
+
+1. To solve the `TypeError` you may face with line 72 in `calvin_env/calvin_env/envs/play_table_env.py`, replace line 20 with `from calvin_env import calvin_env`. 
+
 
 ## Citation
 If you find DiWA useful in your work, please leave a ⭐ and consider citing our work with:
@@ -99,13 +105,14 @@ If you find DiWA useful in your work, please leave a ⭐ and consider citing our
 @article{chandra2025diwa,
     title={DiWA: Diffusion Policy Adaptation with World Models},
     author={Chandra, Akshay L and Nematollahi, Iman and Huang, Chenguang and Welschehold, Tim and Burgard, Wolfram and Valada, Abhinav},
-    journal={},
+    journal={Preprint},
     year={2025},
 }
 ```
 
 ## License
 This repository is released under the GPL-3.0 license. See [LICENSE](LICENSE).
+
 
 ## Acknowledgement
 * [DPPO, Zen et al.](https://github.com/irom-princeton/dppo): Code base on top of which DiWA was built. Specifically, `sequence.py` in `diwa/dataset`, DDPM, DDIM, Gaussian, MLP/U-Net, ViT implementation in `diwa/model/`, PPO implementation in `diwa/agent/`.

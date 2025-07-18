@@ -31,7 +31,7 @@ rgb_obs: true
 stacked_obs: true
 
 wandb:
-  entity: ${oc.env:DPPO_WANDB_ENTITY}
+  entity: ${oc.env:DIWA_WANDB_ENTITY}
   project: calvin-${env_name}-finetune
   run: ${comment}_${now:%H-%M-%S}-${name}
   dir: ${logdir}

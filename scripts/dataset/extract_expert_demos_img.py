@@ -86,7 +86,9 @@ class CALVINSkillExtractor:
         -----------
         episode: dict of numpy arrays containing the episode where keys are the names of modalities
         """
-        episodes = [load_npz(self.get_episode_name(file_idx)) for file_idx in range(start_idx, end_idx, self.step_len)]
+        episodes = [
+            load_npz(self.get_episode_name(file_idx)) for file_idx in range(start_idx, end_idx + 1, self.step_len)
+        ]
         episode = {key: np.stack([ep[key] for ep in episodes]) for key, _ in episodes[0].items()}
         return episode
 
@@ -155,7 +157,7 @@ class CALVINSkillExtractor:
         return episode_lookup
 
 
-@hydra.main(version_base="1.3", config_path="../../config/dataset", config_name="extract_expert_demos_libero")
+@hydra.main(version_base="1.3", config_path="../../config/dataset", config_name="extract_expert_demos_img")
 def make_dataset(cfg: DictConfig) -> None:
     if not os.path.exists(cfg.output_dir):
         os.makedirs(cfg.output_dir, exist_ok=True)

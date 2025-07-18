@@ -10,7 +10,7 @@ from tqdm import tqdm
 from diwa.env.utils.calvin_helpers import resize_image
 
 
-@hydra.main(version_base="1.3", config_path="../config/dataset", config_name="preprocess_calvin")
+@hydra.main(version_base="1.3", config_path="../../config/dataset", config_name="preprocess_calvin")
 def process_dataset(cfg: DictConfig) -> None:
     input_dir = Path(cfg.input_dir)
     output_dir = Path(cfg.output_dir)
