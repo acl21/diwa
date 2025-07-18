@@ -1,0 +1,125 @@
+defaults:
+  - _self_
+  - env@env_cfg: calvin
+hydra:
+  run:
+    dir: ${logdir}
+_target_: diwa.agent.finetune.train_mb_ppo_diffusion_agent_visionwm.TrainMBPPODiffusionAgent
+
+name: ${env_name}_ft_diffusion_mlp_feat_ta${horizon_steps}_td${denoising_steps}_tdf${ft_denoising_steps}
+logdir: ${oc.env:DIWA_LOG_DIR}/calvin-finetune-feat/${name}/${now:%Y-%m-%d}_${now:%H-%M-%S}_${seed}
+
+base_policy_path: ${oc.env:DIWA_LOG_DIR}/calvin-pretrain-feat/${env_name}_pre_diffusion_mlp_feat_ta4_td20/2025-06-03_16-20-07_42/checkpoint/state_5000.pt
+normalization_path: null
+
+seed: 42
+device: cuda:0
+env_name: close_drawer
+env_type: calvin
+obs_dim: 2048
+action_dim: 7
+denoising_steps: 20
+ft_denoising_steps: 10
+cond_steps: 1
+horizon_steps: 4
+act_steps: ${horizon_steps}
+
+comment: ""
+offline_method: true
+rgb_obs: true
+
+wandb:
+  entity: ${oc.env:DIWA_WANDB_ENTITY}
+  project: calvin-${env_name}-finetune
+  run: ${comment}-vision-feat-${now:%H-%M-%S}-${name}
+  dir: ${logdir}
+
+wm:
+  _target_: diwa.wm.wrapper.visionwm_cls.VisionWMWrapper
+  ckpt_path: ${oc.env:DIWA_LOG_DIR}/wm/ckpts/vision.ckpt
+  device: ${device}
+  stats_path: ${oc.env:DIWA_DATA_DIR}/calvin/task_D_D_rgb64_rot6d/statistics_minmax.yaml
+  temperature: 1.0
+  skill: ${env_name}
+  rew_cls_path: ${oc.env:DIWA_LOG_DIR}/rewcls/${env_name}/model.pth
+
+env:
+  n_envs: 50
+  n_render: -1 # -1 means render every eval episode
+  name: ${env_name}
+  env_type: ${env_type}
+  best_reward_threshold_for_success: 1
+  max_episode_steps: 72
+  save_video: true
+  load_scene_from_dataset: null
+  eval_scene_from_dataset: ${oc.env:DIWA_DATA_DIR}/expert/calvin-state-50/${env_name}/val_robot_obs_scene_obs_starts_1.npz
+  # The following multistep parameters are important so that we can estimate 
+  # a more accurate WM state from the history of observations & actions
+  n_obs_steps: ${horizon_steps}
+  n_action_steps: ${horizon_steps}
+
+train:
+  n_train_itr: 800
+  n_critic_warmup_itr: 2
+  n_steps: 36 # ${eval:'${env.max_episode_steps} / ${horizon_steps}'}
+  gamma: 0.999
+  actor_lr: 1e-5
+  actor_weight_decay: 0
+  actor_lr_scheduler:
+    first_cycle_steps: 1000
+    warmup_steps: 10
+    min_lr: 1e-5
+  critic_lr: 1e-3
+  critic_weight_decay: 0
+  critic_lr_scheduler:
+    first_cycle_steps: 1000
+    warmup_steps: 10
+    min_lr: 1e-3
+  save_model_freq: 100
+  val_freq: 25
+  render:
+    freq: 26
+    num: ${env.n_render}
+  # PPO specific
+  reward_scale_running: True
+  reward_scale_const: 1.0
+  gae_lambda: 0.95
+  batch_size: 7500
+  update_epochs: 10
+  vf_coef: 0.5
+  target_kl: 1
+  bc_loss_coeff: 0.0
+  use_bc_loss: False
+
+model:
+  _target_: diwa.model.diffusion.diffusion_ppo.PPODiffusion
+  # HP to tune
+  gamma_denoising: 0.99
+  clip_ploss_coef: 0.01
+  clip_ploss_coef_base: 0.001
+  clip_ploss_coef_rate: 3
+  randn_clip_value: 3
+  min_sampling_denoising_std: 0.1
+  min_logprob_denoising_std: 0.1
+  #
+  network_path: ${base_policy_path}
+  actor:
+    _target_: diwa.model.diffusion.mlp_diffusion.DiffusionMLP
+    time_dim: 16
+    mlp_dims: [512, 512, 512]
+    residual_style: True
+    cond_dim: ${eval:'${obs_dim} * ${cond_steps}'}
+    horizon_steps: ${horizon_steps}
+    action_dim: ${action_dim}
+  critic:
+    _target_: diwa.model.common.critic.CriticObs
+    mlp_dims: [256, 256, 256]
+    activation_type: Mish
+    residual_style: True
+    cond_dim: ${eval:'${obs_dim} * ${cond_steps}'}
+  ft_denoising_steps: ${ft_denoising_steps}
+  horizon_steps: ${horizon_steps}
+  obs_dim: ${obs_dim}
+  action_dim: ${action_dim}
+  denoising_steps: ${denoising_steps}
+  device: ${device}
