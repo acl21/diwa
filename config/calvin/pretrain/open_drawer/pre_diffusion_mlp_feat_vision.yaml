@@ -8,7 +8,7 @@ _target_: diwa.agent.pretrain.train_diffusion_agent.TrainDiffusionAgent
 
 name: ${env_name}_pre_diffusion_mlp_feat_ta${horizon_steps}_td${denoising_steps}
 logdir: ${oc.env:DIWA_LOG_DIR}/calvin-pretrain-feat/${name}/${now:%Y-%m-%d}_${now:%H-%M-%S}_${seed}
-train_dataset_path: ${oc.env:DIWA_DATA_DIR}/expert/calvin-feat-1300K-50/${env_name}/train.npz
+train_dataset_path: ${oc.env:DIWA_DATA_DIR}/expert/calvin-feat-50/${env_name}/train.npz
 normalization_path: null
 
 seed: 42

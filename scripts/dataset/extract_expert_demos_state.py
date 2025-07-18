@@ -151,7 +151,7 @@ class CALVINSkillExtractor:
         return episode_lookup
 
 
-@hydra.main(version_base="1.3", config_path="../../config/dataset", config_name="extract_expert_demos")
+@hydra.main(version_base="1.3", config_path="../../config/dataset", config_name="extract_expert_demos_state")
 def make_dataset(cfg: DictConfig) -> None:
     if not os.path.exists(cfg.output_dir):
         os.makedirs(cfg.output_dir, exist_ok=True)
