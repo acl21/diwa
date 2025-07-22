@@ -73,10 +73,12 @@ python scripts/train_wm.py trainer.devices=[<GPU-ID>]
 ```bash
 python scripts/featurizer.py device=<GPU-ID>
 ```
-#### 1.3 (Optional) World Model Tests
+#### 1.3 (Optional) Qualitative Test
+Optionally, one can visually assess the quality of the learned world model with our test script.
 ```bash
-(TODO)
+python scripts/tests/visionwm.py
 ```
+
 ### 2. Diffusion Policy Training
 
 **Note**: Before pre-training, please extract the featurized expert data with A.2 [here](dataset/README.md#a2-extract-expert-data-for-diffusion-policy-training) or you can download [here](https://diwa.cs.uni-freiburg.de/download/data/expert.zip).
