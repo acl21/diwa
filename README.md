@@ -6,10 +6,12 @@
 
 <sup>1</sup>University of Freiburg, <sup>2</sup>University of Technology Nürnberg
 
-<img src="https://github.com/acl21/diwa/blob/main/docs/diwa_overview.png" alt="drawing" width="100%"/>
+<img src="https://github.com/acl21/diwa/blob/main/docs/diwa_cover.png" alt="drawing" width="100%"/>
 
 > DiWA is an algorithmic framework for fine-tuning diffusion-based policies entirely inside frozen world models (learned from large play data).
 
+## Overview
+<img src="https://github.com/acl21/diwa/blob/main/docs/diwa_overview.png" alt="drawing" width="100%"/>
 
 ## Installation
 1. To begin, clone this repository locally
@@ -61,7 +63,7 @@ sh install.sh
 To download and preprocess datasets for DiWA, please follow A.0 and A.1 [here](dataset/README.md#a-calvin).
 
 ### 1. World Model
-**Note**: (TODO) You may skip world model training if you would like to use the default checkpoints (available for download).
+**Note**: You may skip world model training if you would like to use the default checkpoints (available for download [here](https://diwa.cs.uni-freiburg.de/download/ckpts/vision.ckpt)).
 
 #### 1.1 Training
 ```bash
@@ -77,17 +79,19 @@ python scripts/featurizer.py device=<GPU-ID>
 ```
 ### 2. Diffusion Policy Training
 
-**Note**: (TODO) You may skip pre-training if you would like to use the default checkpoints (available for download) for fine-tuning. 
+**Note**: Before pre-training, please extract the featurized expert data with A.2 [here](dataset/README.md#a2-extract-expert-data-for-diffusion-policy-training) or you can download [here](https://diwa.cs.uni-freiburg.de/download/data/expert.zip).
 
-Before pre-training, please extract the featurized expert data with A.2 [here](dataset/README.md#a2-extract-expert-data-for-diffusion-policy-training). All configs relevant for pre-training can be found under `config/<env>/pretrain/<skill-name>`. To pretrain CALVIN's `close_drawer` skill, run:
+All configs relevant for pre-training can be found under `config/<env>/pretrain/<skill-name>`. To pretrain CALVIN's `close_drawer` skill, run:
 ```bash
 python scripts/run.py --config-name=pre_diffusion_mlp_feat_vision --config-dir=config/calvin/pretrain/close_drawer
 ```
+
 ### 3. Reward Estimation
 Before training the reward classifier, please generate the class-balanced classification data with A.3 [here](dataset/README.md#a3-generate-class-balanced-data-for-reward-classifier-training).
 ```bash
 python scripts/rewcls/train_contrastive.py
 ```
+
 ### 4. Fine-tuning inside World Model
 All configs relevant for fine-tuning can be found under `config/<env>/finetune/<skill-name>`. Set `base_policy_path` to the relevant pretrained policy checkpoint. To fine-tune CALVIN's `close_drawer` skill, run:
 ```bash
@@ -115,7 +119,7 @@ This repository is released under the GPL-3.0 license. See [LICENSE](LICENSE).
 
 
 ## Acknowledgement
-* [DPPO, Zen et al.](https://github.com/irom-princeton/dppo): Code base on top of which DiWA was built. Specifically, `sequence.py` in `diwa/dataset`, DDPM, DDIM, Gaussian, MLP/U-Net, ViT implementation in `diwa/model/`, PPO implementation in `diwa/agent/`.
+* [DPPO, Zen et al.](https://github.com/irom-princeton/dppo): Code base on top of which DiWA was built. Specifically, `sequence.py` in `diwa/dataset`, DDPM, DDIM, Gaussian, MLP/U-Net, ViT implementations in `diwa/model/`, PPO implementation in `diwa/agent/` are all borrowed.
 * [LUMOS, Nematollahi et al.](https://github.com/nematoli/lumos): World model training.
 * [CALVIN, Mees et al.](https://github.com/mees/calvin_env): Simulation experiments.
 * [LIBERO, Liu et al.](https://github.com/Lifelong-Robot-Learning/LIBERO): Simulation experiments.
