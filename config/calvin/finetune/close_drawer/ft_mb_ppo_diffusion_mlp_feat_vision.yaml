@@ -14,7 +14,7 @@ normalization_path: null
 
 seed: 42
 device: cuda:0
-env_name: open_drawer
+env_name: close_drawer
 env_type: calvin
 obs_dim: 2048
 action_dim: 7

@@ -13,7 +13,7 @@ normalization_path: ${oc.env:DIWA_DATA_DIR}/expert/calvin-state-50/${env_name}/n
 
 seed: 42
 device: cuda:0
-env_name: open_drawer
+env_name: close_drawer
 env_type: calvin
 obs_dim: 51
 action_dim: 7
