@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import torch
 
 from diwa.model.rewcls.contrastive import ContrastiveModel as RewardClassifier
@@ -19,9 +21,16 @@ class VisionWMWrapper(BaseWMWrapper, VisionWMObsEncoder):
         VisionWMObsEncoder.__init__(self, ckpt_path, device, stats_path)
         BaseWMWrapper.__init__(self, temperature, skill, device)
         self.set_wm(self.wm)
-        self.rewcls = RewardClassifier(input_dim=rew_cls_input_dim)
-        self.rewcls.load_state_dict(torch.load(rew_cls_path))
-        self.rewcls.to(device)
+
+        if rew_cls_path == "":
+            self.rewcls = None
+            print("WARNING: Using VisionWMWrapper without a reward classifier.\n")
+        elif Path(rew_cls_path).exists():
+            self.rewcls = RewardClassifier(input_dim=rew_cls_input_dim)
+            self.rewcls.load_state_dict(torch.load(rew_cls_path))
+            self.rewcls.to(device)
+        else:
+            raise FileNotFoundError(f"Reward classifier path {rew_cls_path} does not exist.")
 
     def decode_latent(self, latent):
         dcd_img_s, dcd_img_g = self.wm.decoder(latent)
