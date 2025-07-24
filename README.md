@@ -26,12 +26,12 @@
 </td></tr></table>&nbsp;
 </center>
 
-<img src="https://github.com/acl21/diwa/tree/main/docs/diwa_cover.png" alt="drawing" width="100%" style="border-radius:5%"/>
+<img src="https://github.com/acl21/diwa/blob/main/docs/diwa_cover.png" alt="drawing" width="100%" style="border-radius:5%"/>
 
 > DiWA is an algorithmic framework for fine-tuning diffusion-based policies entirely inside frozen world models (learned from large play data).
 
 ## 🔎 Overview
-<img src="https://github.com/acl21/diwa/tree/main/docs/diwa_overview.png" alt="drawing" style="border-radius:2%" width="100%"/>
+<img src="https://github.com/acl21/diwa/blob/main/docs/diwa_overview.png" alt="drawing" style="border-radius:2%" width="100%"/>
 
 ## 💻 Installation
 1. To begin, clone this repository locally
