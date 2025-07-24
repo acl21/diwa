@@ -1,19 +1,32 @@
 # DiWA: Diffusion Policy Adaptation with World Models
 
-[[Paper]()]&nbsp;&nbsp;[[Website](https://diwa.cs.uni-freiburg.de/)]
+<!-- [[Paper]()]&nbsp;&nbsp;[[Website](https://diwa.cs.uni-freiburg.de/)]
 
-[Akshay L Chandra](https://akshaychandra.com/)<sup>1</sup>, [Iman Nematollahi](https://imanema.com/)<sup>1</sup>, [Chenguang Huang](https://scholar.google.com/citations?user=_rcR8TAAAAAJ&hl=en)<sup>2</sup>, [Tim Welschehold](https://rl.uni-freiburg.de/people/welschehold)<sup>1</sup> [Wolfram Burgard](https://scholar.google.com/citations?user=zj6FavAAAAAJ&hl=en)<sup>2</sup>, [Abhinav Valada](https://rl.uni-freiburg.de/people/valada)<sup>1</sup>
+[Akshay L Chandra]()<sup>1</sup>, [Iman Nematollahi](https://imanema.com/)<sup>1</sup>, [Chenguang Huang](https://scholar.google.com/citations?user=_rcR8TAAAAAJ&hl=en)<sup>2</sup>, [Tim Welschehold](https://rl.uni-freiburg.de/people/welschehold)<sup>1</sup> [Wolfram Burgard](https://scholar.google.com/citations?user=zj6FavAAAAAJ&hl=en)<sup>2</sup>, [Abhinav Valada](https://rl.uni-freiburg.de/people/valada)<sup>1</sup>
 
-<sup>1</sup>University of Freiburg, <sup>2</sup>University of Technology Nürnberg
+<sup>1</sup>University of Freiburg, <sup>2</sup>University of Technology Nürnberg -->
+
+<p align="center">&nbsp;<table><tr><td>
+    <p align="center">
+    <strong>
+        <a href="https://arxiv.org/abs/XXXX.XXXX">
+            DiWA: Diffusion Policy Adaptation with World Models
+        </a><br/>
+    </strong>
+    <a href="https://akshaychandra.com/">Akshay L Chandra</a><sup>1*</sup>, <a href="https://imanema.com/">Iman Nematollahi</a><sup>1*</sup>, <a href="https://scholar.google.com/citations?user=_rcR8TAAAAAJ&hl=en">Chenguang Huang</a><sup>2</sup>,<br><a href="https://rl.uni-freiburg.de/people/welschehold">Tim Welschehold</a><sup>1</sup>, <a href="https://scholar.google.com/citations?user=zj6FavAAAAAJ&hl=en">Wolfram Burgard</a><sup>2</sup>, <a href="https://rl.uni-freiburg.de/people/valada">Abhinav Valada</a><sup>2</sup><br>
+    <sup>1</sup><em>Univeristy of Freiburg</em><br>
+    <sup>2</sup><em>University of Technology Nuremberg</em><br>
+</td></tr></table>&nbsp;
+
 
 <img src="https://github.com/acl21/diwa/blob/main/docs/diwa_cover.png" alt="drawing" width="100%"/>
 
 > DiWA is an algorithmic framework for fine-tuning diffusion-based policies entirely inside frozen world models (learned from large play data).
 
-## Overview
+## 🔎 Overview
 <img src="https://github.com/acl21/diwa/blob/main/docs/diwa_overview.png" alt="drawing" width="100%"/>
 
-## Installation
+## 💻 Installation
 1. To begin, clone this repository locally
 ```bash
 git clone --recurse-submodules https://github.com/acl21/diwa.git
@@ -58,7 +71,7 @@ conda activate diwa
 sh install.sh 
 ```
 
-## Usage
+## 🛠️ Usage
 ### 0. Dataset
 To download and preprocess datasets for DiWA, please follow A.0 and A.1 [here](dataset/README.md#a-calvin).
 
@@ -100,12 +113,12 @@ All configs relevant for fine-tuning can be found under `config/<env>/finetune/<
 python scripts/run.py --config-name=ft_mb_ppo_diffusion_mlp_feat_vision --config-dir=cfg/calvin/finetune/close_drawer
 ```
 
-## Known Issues
+## ⚠️ Known Issues
 
 1. To solve the `TypeError` you may face with line 72 in `calvin_env/calvin_env/envs/play_table_env.py`, replace line 20 with `from calvin_env import calvin_env`. 
 
 
-## Citation
+## 📝 Citation
 If you find DiWA useful in your work, please leave a ⭐ and consider citing our work with:
 ```
 @article{chandra2025diwa,
@@ -116,11 +129,11 @@ If you find DiWA useful in your work, please leave a ⭐ and consider citing our
 }
 ```
 
-## License
+## 🏷️ License
 This repository is released under the GPL-3.0 license. See [LICENSE](LICENSE).
 
 
-## Acknowledgement
+## ✨ Acknowledgement
 * [DPPO, Zen et al.](https://github.com/irom-princeton/dppo): Code base on top of which DiWA was built. Specifically, `sequence.py` in `diwa/dataset`, DDPM, DDIM, Gaussian, MLP/U-Net, ViT implementations in `diwa/model/`, PPO implementation in `diwa/agent/` are all borrowed.
 * [LUMOS, Nematollahi et al.](https://github.com/nematoli/lumos): World model training.
 * [CALVIN, Mees et al.](https://github.com/mees/calvin_env): Simulation experiments.
