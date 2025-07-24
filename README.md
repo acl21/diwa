@@ -1,16 +1,20 @@
 # DiWA: Diffusion Policy Adaptation with World Models
 
+[![arXiv](https://img.shields.io/badge/ArXiv-XXXX.XXXX-b31b1b.svg)](https://arxiv.org/abs/XXXX.XXXX)
+[![Website](https://img.shields.io/badge/Website-DiWA-blue.svg)](https://diwa.cs.uni-freiburg.de)
+[![License](https://img.shields.io/badge/License-GPLv3-green.svg)](https://github.com/acl21/diwa/blob/main/LICENSE)
+[![PyTorch](https://img.shields.io/badge/Python-PyTorch-orange.svg)](https://www.pytorch.org)
+
 <!-- [[Paper]()]&nbsp;&nbsp;[[Website](https://diwa.cs.uni-freiburg.de/)]
 
 [Akshay L Chandra]()<sup>1</sup>, [Iman Nematollahi](https://imanema.com/)<sup>1</sup>, [Chenguang Huang](https://scholar.google.com/citations?user=_rcR8TAAAAAJ&hl=en)<sup>2</sup>, [Tim Welschehold](https://rl.uni-freiburg.de/people/welschehold)<sup>1</sup> [Wolfram Burgard](https://scholar.google.com/citations?user=zj6FavAAAAAJ&hl=en)<sup>2</sup>, [Abhinav Valada](https://rl.uni-freiburg.de/people/valada)<sup>1</sup>
 
 <sup>1</sup>University of Freiburg, <sup>2</sup>University of Technology Nürnberg -->
-[![pytorch](https://img.shields.io/badge/Python-PyTorch-orange.svg)](https://www.pytorch.org)
-[![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://github.com/acl21/diwa/blob/main/LICENSE)
-[![arXiv](https://img.shields.io/badge/ArXiv-XXXX.XXXX-b31b1b.svg)](https://arxiv.org/abs/XXXX.XXXX)
 
-<p align="center">&nbsp;<table><tr><td>
-    <p align="center">
+
+<center>
+<div align="center">&nbsp;<table><tr><td>
+    <div align="center">
     <strong>
         <a href="https://arxiv.org/abs/XXXX.XXXX">
             DiWA: Diffusion Policy Adaptation with World Models
@@ -20,14 +24,14 @@
     <sup>1</sup><em>Univeristy of Freiburg</em><br>
     <sup>2</sup><em>University of Technology Nuremberg</em><br>
 </td></tr></table>&nbsp;
+</center>
 
-
-<img src="https://github.com/acl21/diwa/blob/main/docs/diwa_cover.png" alt="drawing" width="100%"/>
+<img src="./docs/diwa_cover.png" alt="drawing" width="100%" style="border-radius:5%"/>
 
 > DiWA is an algorithmic framework for fine-tuning diffusion-based policies entirely inside frozen world models (learned from large play data).
 
 ## 🔎 Overview
-<img src="https://github.com/acl21/diwa/blob/main/docs/diwa_overview.png" alt="drawing" width="100%"/>
+<img src="./docs/diwa_overview.png" alt="drawing" style="border-radius:2%" width="100%"/>
 
 ## 💻 Installation
 1. To begin, clone this repository locally
