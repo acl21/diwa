@@ -50,7 +50,7 @@ def make_calvin_env(
         n_obs_steps=n_obs_steps,
         n_action_steps=n_action_steps,
     )
-    if num_envs == 1:  # a special case for eval only (pretrain)
+    if num_envs == 1:  # a special case for eval only (pretrain or eval)
         return None, eval_env_ms
     if offline_method:
         # for methods that are offline (e.g., DiWA)
