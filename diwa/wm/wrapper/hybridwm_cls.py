@@ -1,4 +1,5 @@
-import numpy as np
+from pathlib import Path
+
 import torch
 
 from diwa.model.rewcls.contrastive import ContrastiveModel as RewardClassifier
@@ -19,9 +20,17 @@ class HybridWMWrapper(BaseWMWrapper, HybridWMObsEncoder):
     ):
         HybridWMObsEncoder.__init__(self, ckpt_path, device, stats_path)
         BaseWMWrapper.__init__(self, temperature, skill, device)
-        self.rewcls = RewardClassifier(input_dim=rew_cls_input_dim)
-        self.rewcls.load_state_dict(torch.load(rew_cls_path))
-        self.rewcls.to(device)
+        self.set_wm(self.wm)
+
+        if rew_cls_path == "":
+            self.rewcls = None
+            print("WARNING: Using VisionWMWrapper without a reward classifier.\n")
+        elif Path(rew_cls_path).exists():
+            self.rewcls = RewardClassifier(input_dim=rew_cls_input_dim)
+            self.rewcls.load_state_dict(torch.load(rew_cls_path))
+            self.rewcls.to(device)
+        else:
+            raise FileNotFoundError(f"Reward classifier path {rew_cls_path} does not exist.")
 
     def decode_latent(self, latent):
         dcd_img_s, dcd_img_g, dcd_state_obs = self.wm.decoder(latent)
@@ -46,8 +55,11 @@ class HybridWMWrapper(BaseWMWrapper, HybridWMObsEncoder):
 
         dcd_r_obs, dcd_s_obs, dcd_rgb_s, dcd_rgb_g = self.decode_latent(latent)
 
-        reward = self.rewcls(latent)
-        reward = reward.argmax(dim=1)
+        if self.rewcls is None:
+            reward = torch.zeros(latent.shape[0], device=self.device)
+        else:
+            reward = self.rewcls(latent)
+            reward = reward.argmax(dim=1)
 
         return (
             latent,
