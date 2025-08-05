@@ -20,7 +20,7 @@
             DiWA: Diffusion Policy Adaptation with World Models
         </a><br/>
     </strong>
-    <a href="https://akshaychandra.com/">Akshay L Chandra</a><sup>1*</sup>, <a href="https://imanema.com/">Iman Nematollahi</a><sup>1*</sup>, <a href="https://scholar.google.com/citations?user=_rcR8TAAAAAJ&hl=en">Chenguang Huang</a><sup>2</sup>,<br><a href="https://rl.uni-freiburg.de/people/welschehold">Tim Welschehold</a><sup>1</sup>, <a href="https://scholar.google.com/citations?user=zj6FavAAAAAJ&hl=en">Wolfram Burgard</a><sup>2</sup>, <a href="https://rl.uni-freiburg.de/people/valada">Abhinav Valada</a><sup>2</sup><br>
+    <a href="https://akshaychandra.com/">Akshay L Chandra</a><sup>1*</sup>, <a href="https://imanema.com/">Iman Nematollahi</a><sup>1*</sup>, <a href="https://scholar.google.com/citations?user=_rcR8TAAAAAJ&hl=en">Chenguang Huang</a><sup>2</sup>,<br><a href="https://rl.uni-freiburg.de/people/welschehold">Tim Welschehold</a><sup>1</sup>, <a href="https://scholar.google.com/citations?user=zj6FavAAAAAJ&hl=en">Wolfram Burgard</a><sup>2</sup>, <a href="https://rl.uni-freiburg.de/people/valada">Abhinav Valada</a><sup>1</sup><br>
     <sup>1</sup><em>Univeristy of Freiburg</em><br>
     <sup>2</sup><em>University of Technology Nuremberg</em><br>
 </td></tr></table>&nbsp;

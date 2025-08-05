@@ -47,8 +47,11 @@ class VisionWMWrapper(BaseWMWrapper, VisionWMObsEncoder):
 
         dcd_rgb_s, dcd_rgb_g = self.decode_latent(latent)
 
-        reward = self.rewcls(latent)
-        reward = reward.argmax(dim=1)
+        if self.rewcls is None:
+            reward = torch.zeros(latent.shape[0], device=self.device)
+        else:
+            reward = self.rewcls(latent)
+            reward = reward.argmax(dim=1)
 
         return (
             latent,
