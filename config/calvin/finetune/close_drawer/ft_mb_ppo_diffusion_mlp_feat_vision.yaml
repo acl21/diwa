@@ -9,7 +9,7 @@ _target_: diwa.agent.finetune.train_mb_ppo_diffusion_agent_visionwm.TrainMBPPODi
 name: ${env_name}_ft_diffusion_mlp_feat_ta${horizon_steps}_td${denoising_steps}_tdf${ft_denoising_steps}
 logdir: ${oc.env:DIWA_LOG_DIR}/calvin-finetune-feat/${name}/${now:%Y-%m-%d}_${now:%H-%M-%S}_${seed}
 
-base_policy_path: ${oc.env:DIWA_LOG_DIR}/calvin-pretrain-feat/${env_name}_pre_diffusion_mlp_feat_ta4_td20/2025-06-03_16-20-07_42/checkpoint/state_5000.pt
+base_policy_path: ${oc.env:DIWA_LOG_DIR}/calvin-pretrain-feat/${env_name}_pre_diffusion_mlp_feat_ta4_td20/2025-07-09_16-06-38_42/checkpoint/state_5000.pt
 normalization_path: null
 
 seed: 42

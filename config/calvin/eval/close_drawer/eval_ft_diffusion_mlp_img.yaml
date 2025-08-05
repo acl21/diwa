@@ -1,0 +1,96 @@
+defaults:
+  - _self_
+  - env@env_cfg: calvin
+hydra:
+  run:
+    dir: ${logdir}
+_target_: diwa.agent.eval.eval_diffusion_img_agent.EvalImgDiffusionAgent
+
+name: ${env_name}_eval_diffusion_mlp_img_ta${horizon_steps}_td${denoising_steps}
+logdir: ${oc.env:DIWA_LOG_DIR}/calvin-eval-img/${name}/${now:%Y-%m-%d}_${now:%H-%M-%S}_${seed}
+base_policy_path: ${oc.env:DIWA_LOG_DIR}/calvin-finetune/${env_name}_ft_diffusion_mlp_img_ta4_td20_tdf10/2025-05-08_06-08-46_42/checkpoint/state_300.pt
+normalization_path: ${oc.env:DIWA_DATA_DIR}/expert/calvin-img-50/${env_name}/normalization.npz
+
+seed: 42
+device: cuda:0
+env_name: close_drawer
+env_type: calvin
+obs_dim: 18
+action_dim: 7
+denoising_steps: 20
+ft_denoising_steps: 10
+cond_steps: 1
+horizon_steps: 4
+act_steps: ${horizon_steps}
+img_cond_steps: ${cond_steps}
+use_ddim: true
+ddim_steps: ${ft_denoising_steps}
+
+comment: ""
+offline_method: false
+rgb_obs: true
+stacked_obs: true
+
+env:
+  n_envs: 1 # For evaluation, we only need one environment (do not change this)
+  n_render: 1 # or -1 
+  name: ${env_name}
+  env_type: ${env_type}
+  best_reward_threshold_for_success: 1
+  max_episode_steps: 72
+  save_video: true
+  load_scene_from_dataset: null
+  eval_scene_from_dataset: ${oc.env:DIWA_DATA_DIR}/expert/calvin-state-50/${env_name}/val_robot_obs_scene_obs_starts_1.npz
+  # The following multistep parameters are important so that we can estimate 
+  # a more accurate WM state from the history of observations & actions
+  n_obs_steps: ${cond_steps}
+  n_action_steps: ${horizon_steps}
+
+shape_meta:
+  obs:
+    rgb:
+      shape: [6, 64, 64]
+    state:
+      shape: [18]
+  action: 
+    shape: [7]
+
+model:
+  _target_: diwa.model.diffusion.diffusion_eval.DiffusionEval
+  ft_denoising_steps: ${ft_denoising_steps}
+  predict_epsilon: True
+  denoised_clip_value: 1.0
+  randn_clip_value: 3.0
+  use_ddim: ${use_ddim}
+  ddim_steps: ${ddim_steps}
+  #
+  network_path: ${base_policy_path}
+  network:
+    _target_: diwa.model.diffusion.mlp_diffusion.VisionDiffusionMLP
+    backbone:
+      _target_: diwa.model.common.vit.VitEncoder
+      obs_shape: ${shape_meta.obs.rgb.shape}
+      num_channel: ${eval:'${shape_meta.obs.rgb.shape[0]} * ${img_cond_steps}'} # each image patch is history concatenated
+      img_h: ${shape_meta.obs.rgb.shape[1]}
+      img_w: ${shape_meta.obs.rgb.shape[2]}
+      cfg:
+        patch_size: 8
+        depth: 1
+        embed_dim: 128
+        num_heads: 4
+        embed_style: embed2
+        embed_norm: 0
+    img_cond_steps: ${img_cond_steps}
+    augment: True
+    spatial_emb: 128
+    time_dim: 16
+    mlp_dims: [512, 512, 512]
+    residual_style: True
+    cond_dim: ${eval:'${obs_dim} * ${cond_steps}'}
+    horizon_steps: ${horizon_steps}
+    action_dim: ${action_dim}
+  horizon_steps: ${horizon_steps}
+  obs_dim: ${obs_dim}
+  action_dim: ${action_dim}
+  denoising_steps: ${denoising_steps}
+  device: ${device}

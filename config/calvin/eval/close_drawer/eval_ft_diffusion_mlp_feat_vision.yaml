@@ -8,7 +8,7 @@ _target_: diwa.agent.eval.eval_diffusion_agent.EvalDiffusionAgent
 
 name: ${env_name}_eval_diffusion_mlp_ta${horizon_steps}_td${denoising_steps}
 logdir: ${oc.env:DIWA_LOG_DIR}/calvin-eval-feat/${name}/${now:%Y-%m-%d}_${now:%H-%M-%S}_${seed}
-base_policy_path: ${oc.env:DIWA_LOG_DIR}/calvin-pretrain-feat/${env_name}_pre_diffusion_mlp_feat_ta4_td20/2025-07-31_16-28-30_42/checkpoint/state_5000.pt
+base_policy_path: ${oc.env:DIWA_LOG_DIR}/calvin-finetune-feat/close_drawer_ft_diffusion_mlp_ta4_td20_tdf10/2025-05-03_18-06-45_43/checkpoint/state_300.pt"
 normalization_path: null
 
 seed: 42
@@ -18,7 +18,7 @@ env_type: calvin
 obs_dim: 2048
 action_dim: 7
 denoising_steps: 20
-ft_denoising_steps: 0 # Use 0 for base policy evaluation
+ft_denoising_steps: 10 # Use 0 for base policy evaluation
 cond_steps: 1
 horizon_steps: 4
 act_steps: ${horizon_steps}
@@ -29,7 +29,7 @@ rgb_obs: true
 
 wm:
   _target_: diwa.wm.encoder.visionwm.VisionWMObsEncoder
-  ckpt_path: ${oc.env:DIWA_LOG_DIR}/wm/ckpts/vision.ckpt
+  ckpt_path: ${oc.env:DIWA_LOG_DIR}/wm/ckpts/vision_2M_old.ckpt
   device: ${device}
   stats_path: ${oc.env:DIWA_DATA_DIR}/statistics_minmax.yaml
 
