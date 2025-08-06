@@ -1,6 +1,6 @@
 # DiWA: Diffusion Policy Adaptation with World Models
 
-[![arXiv](https://img.shields.io/badge/ArXiv-XXXX.XXXX-b31b1b.svg)](https://arxiv.org/abs/XXXX.XXXX)
+[![arXiv](https://img.shields.io/badge/ArXiv-2508.03645-b31b1b.svg)](https://arxiv.org/abs/2508.03645)
 [![Website](https://img.shields.io/badge/Website-DiWA-blue.svg)](https://diwa.cs.uni-freiburg.de)
 [![License](https://img.shields.io/badge/License-GPLv3-green.svg)](https://github.com/acl21/diwa/blob/main/LICENSE)
 [![PyTorch](https://img.shields.io/badge/Python-PyTorch-orange.svg)](https://www.pytorch.org)
@@ -16,7 +16,7 @@
 <div align="center">&nbsp;<table><tr><td>
     <div align="center">
     <strong>
-        <a href="https://arxiv.org/abs/XXXX.XXXX">
+        <a href="https://arxiv.org/abs/2508.03645">
             DiWA: Diffusion Policy Adaptation with World Models
         </a><br/>
     </strong>
@@ -131,7 +131,7 @@ If you find DiWA useful in your work, please leave a ⭐ and consider citing our
 @article{chandra2025diwa,
     title={DiWA: Diffusion Policy Adaptation with World Models},
     author={Chandra, Akshay L and Nematollahi, Iman and Huang, Chenguang and Welschehold, Tim and Burgard, Wolfram and Valada, Abhinav},
-    journal={Preprint},
+    journal={Conference on Robot Learning (CoRL)},
     year={2025},
 }
 ```
