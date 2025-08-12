@@ -61,13 +61,13 @@ git submodule update --init --recursive
 
     This repository inclues `https://github.com/mees/calvin_env/` as a submodule for simulation experiments, tracking its `main` branch. 
 
-- **Submoudle:** `LIBERO`
+- **(Optional) Submoudle:** `LIBERO`
     
-    This repository includes `https://github.com/Lifelong-Robot-Learning/LIBERO` as a submodule for simulation experiments, tracking its `master` branch. 
+    One can optionally add `https://github.com/Lifelong-Robot-Learning/LIBERO` as a submodule for simulation experiments. Simply uncomment the relevant lines in `.gitmodules` and relevant install commands in `install.sh`.
 
-- **(Optional) Submodule**: `robot_io`
+<!-- - **(Optional) Submodule**: `robot_io`
     
-    This repository inclues `https://github.com/acl21/robot_io/` as a submodule for real-world experiments, tracking its `main` branch.
+    This repository inclues `https://github.com/acl21/robot_io/` as a submodule for real-world experiments, tracking its `main` branch. -->
 
 4. Create and activate the conda environment, then install the dependencies:
 

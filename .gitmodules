@@ -8,7 +8,7 @@
     url = https://github.com/nematoli/lumos
     branch = diwa
 
-[submodule "LIBERO"]
-    path = LIBERO
-    url = https://github.com/Lifelong-Robot-Learning/LIBERO
-    branch = master
+# [submodule "LIBERO"]
+#     path = LIBERO
+#     url = https://github.com/Lifelong-Robot-Learning/LIBERO
+#     branch = master
