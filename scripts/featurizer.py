@@ -34,7 +34,7 @@ def is_combined_loader(loader):
     return isinstance(loader, CombinedLoader)
 
 
-@hydra.main(version_base="1.3", config_path="../config", config_name="featurizer_libero")
+@hydra.main(version_base="1.3", config_path="../config", config_name="featurizer")
 def featurizer(cfg: DictConfig) -> None:
     """
     This is called to calculate features for a dataset under a loaded world model

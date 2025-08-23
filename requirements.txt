@@ -2,7 +2,7 @@ av
 imageio[ffmpeg]
 einops
 gym==0.22.0
-gymnasium==0.26.2
+gymnasium==0.29.1
 hydra-core
 omegaconf
 matplotlib
