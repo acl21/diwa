@@ -60,7 +60,7 @@ def train(cfg: DictConfig) -> None:
             from lumos.world_models.dreamer_v2_hybrid import DreamerV2
         else:
             raise NotImplementedError(f"Unknown model: {cfg.world_model.name}")
-        model = DreamerV2.load_from_checkpoint(chk.as_posix())
+        model = DreamerV2.load_from_checkpoint(chk.as_posix(), map_location="cpu")
     else:
         model = hydra.utils.instantiate(cfg.world_model)
 
