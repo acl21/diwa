@@ -56,7 +56,7 @@ def featurizer(cfg: DictConfig) -> None:
         if cfg.world_model.name == "dreamer_v2":
             from lumos.world_models.dreamer_v2 import DreamerV2
 
-            world_model = DreamerV2.load_from_checkpoint(chk.as_posix()).to(cfg.device)
+            world_model = DreamerV2.load_from_checkpoint(chk.as_posix(), map_location="cpu").to(cfg.device)
             world_model.eval()
         else:
             raise NotImplementedError(f"Unknown model: {cfg.world_model.name}")

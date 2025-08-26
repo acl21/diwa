@@ -27,7 +27,7 @@ class HybridWMWrapper(BaseWMWrapper, HybridWMObsEncoder):
             print("WARNING: Using VisionWMWrapper without a reward classifier.\n")
         elif Path(rew_cls_path).exists():
             self.rewcls = RewardClassifier(input_dim=rew_cls_input_dim)
-            self.rewcls.load_state_dict(torch.load(rew_cls_path))
+            self.rewcls.load_state_dict(torch.load(rew_cls_path, map_location="cpu"))
             self.rewcls.to(device)
         else:
             raise FileNotFoundError(f"Reward classifier path {rew_cls_path} does not exist.")

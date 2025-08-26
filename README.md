@@ -109,7 +109,7 @@ python scripts/run.py --config-name=pre_diffusion_mlp_feat_vision --config-dir=c
 ```
 
 ### 3. Reward Estimation
-Before training the reward classifier, please generate the class-balanced classification data with A.3 [here](dataset/README.md#a3-generate-class-balanced-data-for-reward-classifier-training).
+Before training the reward classifier, please generate the class-balanced classification data with A.3 [here](dataset/README.md#a3-generate-class-balanced-data-for-reward-classifier-training) or you can download pretrained reward classifiers [here](https://diwa.cs.uni-freiburg.de/download/ckpts/rewcls.zip).
 ```bash
 python scripts/rewcls/train_contrastive.py
 ```
@@ -117,7 +117,7 @@ python scripts/rewcls/train_contrastive.py
 ### 4. Fine-tuning inside World Model
 All configs relevant for fine-tuning can be found under `config/<env>/finetune/<skill-name>`. Set `base_policy_path` to the relevant pretrained policy checkpoint. To fine-tune CALVIN's `close_drawer` skill, run:
 ```bash
-python scripts/run.py --config-name=ft_mb_ppo_diffusion_mlp_feat_vision --config-dir=cfg/calvin/finetune/close_drawer
+python scripts/run.py --config-name=ft_mb_ppo_diffusion_mlp_feat_vision --config-dir=cfg/calvin/finetune/close_drawer device="cuda:0" train.bc_loss_coeff=0.025 train.use_bc_loss=True seed=42
 ```
 
 ## ⚠️ Known Issues
