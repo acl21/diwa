@@ -1,0 +1,43 @@
+defaults:
+  - setup
+  - logger: wandb
+  - ../lumos/config/tensor_cores@_global_
+  - ../lumos/config/callbacks@callbacks: wm_default
+  - ../lumos/config/datamodule@datamodule: static_gripper_cam
+  - ../lumos/config/world_model@world_model: dreamer_v2_224
+  - ../lumos/config/trainer@trainer: wm_default
+  - _self_
+  - override ../lumos/config/datamodule/batch_sampler@datamodule.batch_sampler: batch_equidistant
+
+  - override hydra/job_logging: colorlog
+  - override hydra/hydra_logging: colorlog
+
+datamodule:
+  root_data_dir: ${root}/dataset/task_D_D_224
+  action_chunk_data_dir: ${root}/dataset/task_D_D_ac5
+  action_chunk_size: 5
+  train_batch_size: 16
+  val_batch_size: 16
+  use_cached_data: false
+
+trainer:
+  devices: 4
+  strategy: ddp
+  use_distributed_sampler: false
+
+
+log_dir: ${oc.env:DIWA_LOG_DIR}/wm/
+script: state_wm
+  
+hydra:
+  run:
+    dir: ${log_dir}/runs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  sweep:
+    dir: ${log_dir}/runs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    subdir: ${hydra.job.override_dirname}
+  job:
+    config:
+      override_dirname:
+        exclude_keys:
+          - log_dir
+          - datamodule.root_data_dir 

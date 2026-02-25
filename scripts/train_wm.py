@@ -19,6 +19,8 @@ from lumos.utils.info_utils import (
     setup_logger,
     setup_tensor_cores,
 )
+# To use the mul resolver in the config file
+OmegaConf.register_new_resolver("mul", lambda x, y: x * y)
 
 # This is for using the locally installed repo clone when using slurm
 sys.path.insert(0, Path(__file__).absolute().parents[1].as_posix())
