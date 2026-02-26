@@ -1,13 +1,7 @@
 defaults:
-  - setup
-  - logger: wandb
-  - ../lumos/config/tensor_cores@_global_
-  - ../lumos/config/callbacks@callbacks: wm_default
-  - ../lumos/config/datamodule@datamodule: static_gripper_cam
-  - ../lumos/config/world_model@world_model: dreamer_v2
-  - ../lumos/config/trainer@trainer: wm_default
-  - _self_
-
+  - train_wm
+  - override ../lumos/config/datamodule/batch_sampler@datamodule.batch_sampler: batch_equidistant
+  - override logger: none
   - override hydra/job_logging: colorlog
   - override hydra/hydra_logging: colorlog
 
@@ -15,9 +9,15 @@ datamodule:
   root_data_dir: ${root}/dataset/task_D_D_64
   action_chunk_data_dir: ${root}/dataset/task_D_D_ac5
   action_chunk_size: 5
-  train_batch_size: 50
-  val_batch_size: 50
+  train_batch_size: 25
+  val_batch_size: 25
   use_cached_data: false
+
+trainer:
+  devices: 2
+  strategy: ddp
+  use_distributed_sampler: false
+
 
 log_dir: ${oc.env:DIWA_LOG_DIR}/wm/
 script: wm
