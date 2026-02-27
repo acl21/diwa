@@ -2,7 +2,7 @@ defaults:
   - setup
   - logger: wandb
   - ../lumos/config/tensor_cores@_global_
-  - ../lumos/config/callbacks@callbacks: wm_default
+  - ../lumos/config/callbacks@callbacks: wm_ddp
   - ../lumos/config/datamodule@datamodule: static_gripper_cam
   - ../lumos/config/world_model@world_model: dreamer_v2_224
   - ../lumos/config/trainer@trainer: wm_default
@@ -17,7 +17,7 @@ datamodule:
   action_chunk_data_dir: ${root}/dataset/task_D_D_ac5
   action_chunk_size: 5
   train_batch_size: 16
-  val_batch_size: 16
+  val_batch_size: 2
   use_cached_data: false
 
 trainer:
