@@ -18,7 +18,7 @@ datamodule:
   action_chunk_size: 5
   train_batch_size: 16
   val_batch_size: 2
-  use_cached_data: false
+  use_cached_data: true
 
 trainer:
   devices: 4
