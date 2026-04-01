@@ -1,7 +1,6 @@
 """
-Unmodified from https://github.com/nematoli/lumos
+Unmodified from https://github.com/nematoli/lumos (cheesecake branch)
 """
-
 import logging
 import os
 from pathlib import Path
@@ -17,6 +16,9 @@ import torch
 from tqdm import tqdm
 
 from lumos.utils.info_utils import print_system_env_info
+
+# To use the mul resolver in the config file
+OmegaConf.register_new_resolver("mul", lambda x, y: x * y)
 
 cwd_path = Path(__file__).absolute().parents[0]
 parent_path = cwd_path.parents[0]
@@ -103,7 +105,7 @@ def extract_features(world_model, data_loader, dataset, cfg):
     dim_features = world_model.decoder.in_dim
     feats = np.zeros((len(dataset), dim_features), dtype=np.float32)
     zfeats = np.zeros((len(dataset), dim_features), dtype=np.float32)
-    rel_acts = np.zeros((len(dataset), cfg.datamodule.action_space), dtype=np.float32)
+    pre_acts = np.zeros((len(dataset), cfg.datamodule.action_space), dtype=np.float32)
     resets = np.zeros((len(dataset), 1), dtype=bool)
     frames = np.zeros((len(dataset), 1), dtype=int)
     robot_obs = np.zeros((len(dataset), cfg.world_model.robot_dim), dtype=np.float32)
@@ -127,6 +129,9 @@ def extract_features(world_model, data_loader, dataset, cfg):
         for i, batch in enumerate(loader):
             if combined:
                 batch = batch["vis"]
+            
+            # Reset at starts of chunked episodes (indices < action_chunk_size)
+            batch["reset"][0][batch["idx"] < cfg.datamodule.action_chunk_size] = True
 
             features, out_state = world_model.infer_features(
                 batch["rgb_obs"]["rgb_static"],
@@ -146,12 +151,13 @@ def extract_features(world_model, data_loader, dataset, cfg):
                     batch["rgb_obs"]["rgb_static"],
                     batch["rgb_obs"]["rgb_gripper"],
                     batch["robot_obs"],
+                    cfg.datamodule.action_space,
                 )
                 .cpu()
                 .numpy()
                 .squeeze(0)
             )
-            rel_acts[idxs] = batch["actions"]["rel_actions"].cpu().numpy().squeeze(0)
+            pre_acts[idxs] = batch["actions"]["pre_actions"].cpu().numpy().squeeze(0)
             resets[idxs] = batch["reset"].cpu().numpy().squeeze(0)
             frames[idxs] = batch["frame"].cpu().numpy().squeeze(0)
             robot_obs[idxs] = batch["robot_obs"].cpu().numpy().squeeze(0)
@@ -160,7 +166,7 @@ def extract_features(world_model, data_loader, dataset, cfg):
                 data_dict[int(frames[idx])] = {
                     "features": feats[idx],
                     "zero_features": zfeats[idx],
-                    "rel_actions": rel_acts[idx],
+                    "pre_actions": pre_acts[idx],
                     "reset": resets[idx],
                     "robot_obs": robot_obs[idx],
                 }
@@ -170,9 +176,9 @@ def extract_features(world_model, data_loader, dataset, cfg):
         pickle.dump(data_dict, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 
-def obs_to_zero_feature(wm, rgb_s, rgb_g, proprio):
+def obs_to_zero_feature(wm, rgb_s, rgb_g, proprio, action_space):
     bz = rgb_s.size(1)
-    zero_action = torch.zeros((1, bz, 7)).to(wm.device)
+    zero_action = torch.zeros((1, bz, action_space)).to(wm.device)
     zero_action[:, :, -1] = 1.0
     true_reset = torch.ones((1, bz, 1), dtype=torch.bool).to(wm.device)
 
