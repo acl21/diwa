@@ -43,8 +43,7 @@ class VisionWMWrapper(BaseWMWrapper, VisionWMObsEncoder):
         return rgb_static, rgb_gripper
 
     def multi_step(self, latent, action):
-        for i in range(action.shape[1]):
-            latent = self.wm_step(latent, action[:, i, :])
+        latent = self.wm_step(latent, action)
 
         dcd_rgb_s, dcd_rgb_g = self.decode_latent(latent)
 

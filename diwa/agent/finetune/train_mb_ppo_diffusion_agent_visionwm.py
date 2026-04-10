@@ -176,7 +176,7 @@ class TrainMBPPODiffusionAgent(TrainPPOAgent):
                         dcd_rgb_gripper,
                     ) = self.wme.multi_step(
                         torch.from_numpy(prev_obs_venv).squeeze().float().to(self.device),
-                        torch.from_numpy(action_venv).float().to(self.device),
+                        torch.from_numpy(action_venv).reshape(self.n_envs, -1).float().to(self.device),
                     )
                     obs_venv = obs_venv.cpu().numpy()
                     wm_step_counter += self.act_steps

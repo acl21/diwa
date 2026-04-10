@@ -47,8 +47,6 @@ class CALVINLowDimWrapper(CALVINBaseWrapper):
         obs = self.get_state_obs()
         robot_obs = obs["robot_obs"]
         scene_obs = obs["scene_obs"]
-        robot_obs = replace_euler_with_rot6d(self.rot_transformer, robot_obs, type="robot")
-        scene_obs = replace_euler_with_rot6d(self.rot_transformer, scene_obs, type="scene")
 
         obs = np.concatenate([robot_obs, scene_obs])
         if self.normalize:

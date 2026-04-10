@@ -6,7 +6,7 @@ defaults:
   - _self_
 
 exp_dir: ${wm_chk_dir}
-wm_chk_dir: /path/to/your/model/checkpoint/vision64_ac5.ckpt
+wm_chk_dir: ${oc.env:DIWA_LOG_DIR}/wm/ckpts/vision64-ac5.ckpt
 output_file: "visionwm64_ac5_features.pkl"
 device: 0
 

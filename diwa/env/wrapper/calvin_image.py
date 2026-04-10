@@ -40,7 +40,7 @@ class CALVINImageWrapper(CALVINBaseWrapper):
 
     def get_observation_space(self):
         """Returns the observation space for the environment based on the skill"""
-        obs_dim = 18
+        obs_dim = 7
         rgb_dim = 64 * 64 * 3
         return gym.spaces.Dict(
             {
@@ -52,8 +52,7 @@ class CALVINImageWrapper(CALVINBaseWrapper):
 
     def get_obs(self):
         state_obs = self.get_state_obs()
-        robot_obs = state_obs["robot_obs"]
-        robot_obs = replace_euler_with_rot6d(self.rot_transformer, robot_obs, type="robot")
+        robot_obs = state_obs["robot_obs"][:7]
         if self.normalize:
             robot_obs = self.normalize_obs(robot_obs)
 

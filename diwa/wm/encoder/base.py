@@ -14,7 +14,7 @@ class BaseWMObsEncoder:
         elif wm_type == "vis":
             from lumos.world_models.dreamer_v2 import DreamerV2
 
-        self.wm = DreamerV2.load_from_checkpoint(ckpt_path, map_location="cpu")
+        self.wm = DreamerV2.load_from_checkpoint(ckpt_path, map_location="cpu", weights_only=False)
         self.wm.requires_grad_(False)
         self.wm.eval()
         self.wm.to(device)

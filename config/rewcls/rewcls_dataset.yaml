@@ -8,7 +8,7 @@ data_out_prefix: "rewcls"
 
 wm:
   type: vis
-  ckpt_path: ${oc.env:DIWA_LOG_DIR}/wm/ckpts/vision.ckpt
+  ckpt_path: ${oc.env:DIWA_LOG_DIR}/wm/ckpts/vision64-ac5.ckpt
   device: ${device}
-  stats_path: ${oc.env:DIWA_DATA_DIR}/calvin/task_D_D_rgb64_rot6d/statistics_minmax.yaml
+  stats_path: ${oc.env:DIWA_DATA_DIR}/statistics.yaml
   temperature: 1.0

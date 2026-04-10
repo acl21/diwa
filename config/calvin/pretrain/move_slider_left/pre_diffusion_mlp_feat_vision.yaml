@@ -18,7 +18,7 @@ env_type: calvin
 obs_dim: 2048
 action_dim: 7
 denoising_steps: 20
-horizon_steps: 4
+horizon_steps: 5
 cond_steps: 1
 act_steps: ${horizon_steps}
 
@@ -79,9 +79,9 @@ env_runner:
 
 wm:
   _target_: diwa.wm.encoder.visionwm.VisionWMObsEncoder
-  ckpt_path: ${oc.env:DIWA_LOG_DIR}/wm/ckpts/vision.ckpt
+  ckpt_path: ${oc.env:DIWA_LOG_DIR}/wm/ckpts/vision64-ac5.ckpt
   device: ${device}
-  stats_path: ${oc.env:DIWA_DATA_DIR}/statistics_minmax.yaml
+  stats_path: ${oc.env:DIWA_DATA_DIR}/statistics.yaml
 
 env:
   n_envs: 1 # For pretraining, we only need one environment (do not change this)
@@ -89,11 +89,11 @@ env:
   name: ${env_name}
   env_type: ${env_type}
   best_reward_threshold_for_success: 1
-  max_episode_steps: 72
+  max_episode_steps: 75
   save_video: true
   load_scene_from_dataset: null
-  eval_scene_from_dataset: ${oc.env:DIWA_DATA_DIR}/expert/calvin-state-50/${env_name}/val_robot_obs_scene_obs_starts_1.npz
+  eval_scene_from_dataset: ${oc.env:DIWA_DATA_DIR}/expert/calvin-state-raw-50/${env_name}/val_robot_obs_scene_obs_starts_1.npz
   # The following multistep parameters are important so that we can estimate 
   # a more accurate WM state from the history of observations & actions
-  n_obs_steps: ${horizon_steps}
+  n_obs_steps: 1
   n_action_steps: ${horizon_steps}

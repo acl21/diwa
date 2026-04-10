@@ -129,6 +129,8 @@ class CALVINSkillExtractor:
         end_file_indx = info_indx[1]
 
         episode = self.zip_sequence_feat(start_file_indx, end_file_indx)
+        episode_non_features = self.zip_sequence(start_file_indx, end_file_indx)
+        episode["rel_actions"] = episode_non_features["rel_actions"]
 
         batch = {}
         if "features" in self.data_to_extract:

@@ -30,7 +30,11 @@ def balance_rewcls_dataset(cfg):
             class_0_indices = np.where(y == 0)[0]
             # Choose the n_random frames from the episode (Class 0)
             if len(X) > cfg.n_random:
-                idxs = np.random.choice(len(class_0_indices), cfg.n_random, replace=False)
+                if cfg.n_random > len(class_0_indices):
+                    n_random = len(class_0_indices)
+                else:
+                    n_random = cfg.n_random
+                idxs = np.random.choice(len(class_0_indices), n_random, replace=False)
                 idxs = np.sort(idxs)
                 filtered_X.extend(X[idxs])
                 filtered_y.extend(y[idxs])
@@ -49,7 +53,11 @@ def balance_rewcls_dataset(cfg):
         class_0_indices = np.where(y == 0)[0]
         # Choose the n_random frames from the episode (Class 0)
         if len(X) > cfg.n_random:
-            idxs = np.random.choice(len(class_0_indices), cfg.n_random, replace=False)
+            if cfg.n_random > len(class_0_indices):
+                n_random = len(class_0_indices)
+            else:
+                n_random = cfg.n_random
+            idxs = np.random.choice(len(class_0_indices), n_random, replace=False)
             idxs = np.sort(idxs)
             filtered_X.extend(X[idxs])
             filtered_y.extend(y[idxs])

@@ -1,6 +1,6 @@
-input_dir: ${oc.env:DIWA_DATA_DIR}/calvin/task_D_D_rgb64_rot6d/
+input_dir: ${oc.env:DIWA_DATA_DIR}/task_D_D_64/
 output_dir: ${oc.env:DIWA_DATA_DIR}/expert/calvin-feat-50/
-features_file_name: visionwm_features.pkl # assuming this file exists in both training and validation directories
+features_file_name: visionwm64_ac5_features.pkl # assuming this file exists in both training and validation directories
 skills_list: ["open_drawer", "close_drawer", "move_slider_left", "move_slider_right", "turn_on_lightbulb", "turn_off_lightbulb", "turn_on_led", "turn_off_led"]
 fields_to_extract: ["features", "rel_actions"]
 n_episodes: 50 # Randomly chosen, use -1 for all episodes

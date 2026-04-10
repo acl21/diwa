@@ -1,4 +1,4 @@
-skill_name: "open_drawer"
+skill_name: "close_drawer"
 device: "cuda:0"
 logdir: ${oc.env:DIWA_LOG_DIR}/rewcls/${skill_name}/
 comment: ""
@@ -8,7 +8,7 @@ wandb:
   run: ${comment}-contrastive-${now:%H-%M-%S}
   dir: ${logdir}
 # dataset paths
-train_data_path: ${oc.env:DIWA_DATA_DIR}/expert/calvin-feat-50/${skill_name}/rewcls_train_mix_balanced_10.npz
+train_data_path: ${oc.env:DIWA_DATA_DIR}/expert/calvin-feat-50/${skill_name}/rewcls_train_mix_balanced_4.npz
 val_data_path: ${oc.env:DIWA_DATA_DIR}/expert/calvin-feat-50/${skill_name}/rewcls_val.npz
 model_out_dir: ${logdir}
 model_save_name: "model.pth"

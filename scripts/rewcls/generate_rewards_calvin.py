@@ -11,8 +11,8 @@ def get_env_rewards(env, data):
     traj_lengths = data["traj_lengths"]
     ep_ends = np.cumsum(traj_lengths)
     ep_starts = np.concatenate(([0], ep_ends[:-1]))
-    robot_obs = data["states"][:, :18]  # robot obs
-    scene_obs = data["states"][:, 18:]  # ignore robot obs
+    robot_obs = data["states"][:, :15]  # robot obs
+    scene_obs = data["states"][:, 15:]  # ignore robot obs
     scene_obs[:, 4] = np.round(scene_obs[:, 4]).astype(int).astype(float)
     scene_obs[:, 5] = np.round(scene_obs[:, 5]).astype(int).astype(float)
     rewards = []

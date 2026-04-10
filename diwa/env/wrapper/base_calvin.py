@@ -15,17 +15,15 @@ import imageio
 import numpy as np
 import pybullet as p
 
-from calvin_env.calvin_env.envs.play_table_env import PlayTableSimEnv
-from calvin_env.calvin_env.utils.utils import EglDeviceNotFoundError, get_egl_device_id
+from calvin_env.envs.play_table_env import PlayTableSimEnv
+from calvin_env.utils.utils import EglDeviceNotFoundError, get_egl_device_id
 from diwa.env.utils.calvin_helpers import (
-    replace_rot6d_with_euler,
     sample_random_block_orn,
     sample_random_block_pos,
     sample_random_robot_orn,
     sample_random_robot_pos,
     sample_random_scene_obs,
 )
-from diwa.utils.rotation_transformer import RotationTransformer
 
 logger = logging.getLogger(__name__)
 
@@ -90,8 +88,6 @@ class CALVINBaseWrapper(PlayTableSimEnv):
             self.action_max = normalization["action_max"]
 
         self._t = 0
-
-        self.rot_transformer = RotationTransformer(from_rep="euler_angles", to_rep="rotation_6d", from_convention="XYZ")
 
     @staticmethod
     def get_action_space():
@@ -229,9 +225,6 @@ class CALVINBaseWrapper(PlayTableSimEnv):
             rand_scene_idx = np.random.randint(0, len(self.robot_obs))
             robot_obs = self.robot_obs[rand_scene_idx]
             scene_obs = self.scene_obs[rand_scene_idx]
-        if robot_obs.shape[0] > 15 or scene_obs.shape[0] > 24:
-            robot_obs = replace_rot6d_with_euler(self.rot_transformer, robot_obs, type="robot")
-            scene_obs = replace_rot6d_with_euler(self.rot_transformer, scene_obs, type="scene")
 
         super().reset(robot_obs, scene_obs)
 

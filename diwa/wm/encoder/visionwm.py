@@ -6,9 +6,8 @@ import torch
 from diwa.wm.encoder.base import BaseWMObsEncoder
 from diwa.wm.utils import (
     get_rgb_normalizer,
-    get_rgb_unnormalizer,
     get_robot_obs_normalizer,
-    get_robot_obs_unnormalizer,
+    get_rgb_unnormalizer,
     transpose_tensor,
 )
 
@@ -23,9 +22,8 @@ class VisionWMObsEncoder(BaseWMObsEncoder):
         return r_obs_norm, rgb_obs_norm
 
     def get_unnormalizers(self, device):
-        r_obs_unnorm = get_robot_obs_unnormalizer(self.stats_path, device)
         rgb_obs_unnorm = get_rgb_unnormalizer(device)
-        return r_obs_unnorm, rgb_obs_unnorm
+        return None, rgb_obs_unnorm
 
     def get_zero_wm_features(self, obs, device):
         """
@@ -56,7 +54,7 @@ class VisionWMObsEncoder(BaseWMObsEncoder):
         reset = torch.ones(B, 1, 1).bool().to(device)
         reset = transpose_tensor(reset)
 
-        zero_action = torch.zeros(B, 1, 7).to(device)
+        zero_action = torch.zeros(B, 1, 35).to(device) # TODO: make it more general later
         zero_action[:, :, -1] = 1.0
         zero_action = transpose_tensor(zero_action)
 
@@ -75,6 +73,7 @@ class VisionWMObsEncoder(BaseWMObsEncoder):
         Given environment's history of observations, actions taken and done flags,
         get updated features from the world model.
         """
+        assert obs["robot_obs"].shape[1] == 1, "For the action chunk supporting WMs, the history of observations must be 1."
         B = obs["robot_obs"].shape[0]
         r_norm, rgb_norm = self.get_normalizers(device)
 
@@ -90,32 +89,31 @@ class VisionWMObsEncoder(BaseWMObsEncoder):
         reset = torch.from_numpy(prev_done).reshape(B, 1, 1).bool().to(device)
         reset = transpose_tensor(reset)
 
-        for i in range(obs["robot_obs"].shape[1]):
-            prev_robot_obs = torch.from_numpy(obs["robot_obs"][:, i, :]).float().to(device)
-            prev_robot_obs = r_norm(prev_robot_obs)
-            prev_robot_obs = prev_robot_obs.unsqueeze(1)
-            prev_robot_obs = transpose_tensor(prev_robot_obs)
 
-            prev_rgb_static = torch.from_numpy(obs["rgb_static"][:, i, :]).float().to(device)
-            prev_rgb_static = rgb_norm(prev_rgb_static).unsqueeze(1)
-            prev_rgb_static = transpose_tensor(prev_rgb_static)
+        prev_robot_obs = torch.from_numpy(obs["robot_obs"]).float().to(device)
+        prev_robot_obs = r_norm(prev_robot_obs)
+        prev_robot_obs = transpose_tensor(prev_robot_obs)
 
-            prev_rgb_gripper = torch.from_numpy(obs["rgb_gripper"][:, i, :]).float().to(device)
-            prev_rgb_gripper = rgb_norm(prev_rgb_gripper).unsqueeze(1)
-            prev_rgb_gripper = transpose_tensor(prev_rgb_gripper)
+        prev_rgb_static = torch.from_numpy(obs["rgb_static"]).float().to(device)
+        prev_rgb_static = rgb_norm(prev_rgb_static)
+        prev_rgb_static = transpose_tensor(prev_rgb_static)
 
-            pre_action = (torch.from_numpy(action[:, i, :]).float().to(device)).unsqueeze(1)
-            pre_action = transpose_tensor(pre_action)
+        prev_rgb_gripper = torch.from_numpy(obs["rgb_gripper"]).float().to(device)
+        prev_rgb_gripper = rgb_norm(prev_rgb_gripper)
+        prev_rgb_gripper = transpose_tensor(prev_rgb_gripper)
 
-            features, out_state = self.wm.infer_features(
-                prev_rgb_static,
-                prev_robot_obs,
-                pre_action,
-                reset,
-                in_state,
-                prev_rgb_gripper,
-            )
-            in_state = out_state
-            reset = torch.zeros(B, 1, 1).bool().to(device)
-            reset = transpose_tensor(reset)
+        pre_action = (torch.from_numpy(action.reshape(B, 1, -1)).float().to(device))
+        pre_action = transpose_tensor(pre_action)
+
+        features, out_state = self.wm.infer_features(
+            prev_rgb_static,
+            prev_robot_obs,
+            pre_action,
+            reset,
+            in_state,
+            prev_rgb_gripper,
+        )
+        in_state = out_state
+        reset = torch.zeros(B, 1, 1).bool().to(device)
+        reset = transpose_tensor(reset)
         return transpose_tensor(features), out_state

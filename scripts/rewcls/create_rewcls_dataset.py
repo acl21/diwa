@@ -9,6 +9,7 @@ from tqdm import tqdm
 
 from diwa.wm.wrapper.base import BaseWMWrapper
 
+ACTION_CHUNK_SIZE = 5
 
 def make_rewcls_dataset(cfg, wmw, split):
     """
@@ -62,28 +63,36 @@ def make_rewcls_dataset(cfg, wmw, split):
             start_idx = ep_starts[episode_idx]
             end_idx = ep_ends[episode_idx]
 
-            obs_feat = feat_data["states"][start_idx:end_idx]
-            obs_feat = torch.tensor(obs_feat, dtype=torch.float32).to(cfg.device)
-            actions = feat_data["actions"][start_idx:end_idx]
-            actions = torch.tensor(actions, dtype=torch.float32).to(cfg.device)
-            true_y = rewards_data["rewards"][start_idx:end_idx]
+            # The data has 1 step actions. I need to create ACTION_CHUNK_SIZE step actions and observations that are ACTION_CHUNK_SIZE steps apart.
+            for t in range(ACTION_CHUNK_SIZE):
+                obs_feat = feat_data["states"][start_idx + t:end_idx:ACTION_CHUNK_SIZE]
+                obs_feat = torch.tensor(obs_feat, dtype=torch.float32).to(cfg.device)
+                true_y = rewards_data["rewards"][start_idx + t:end_idx:ACTION_CHUNK_SIZE]
+                action_idxs = np.arange(start_idx + t, end_idx, ACTION_CHUNK_SIZE)
+                actions = []
+                for action_idx in action_idxs:
+                    actions.append(feat_data["actions"][action_idx:action_idx+ACTION_CHUNK_SIZE].reshape(-1))
+                if actions[-1].shape[0] != ACTION_CHUNK_SIZE * 7:
+                    actions[-1] = np.concatenate((actions[-1], np.zeros(ACTION_CHUNK_SIZE * 7 - actions[-1].shape[0])))
+                actions = np.array(actions)
+                actions = torch.tensor(actions, dtype=torch.float32).to(cfg.device)
 
-            latent = obs_feat[0].unsqueeze(0)
-            imagined_X.append(latent.squeeze().cpu().numpy())
-            imagined_X_starts.append(latent.squeeze().cpu().numpy())
-            labels.append(true_y[0])
-            imagined_ep_starts.append(idx)
-            idx += 1
-            for i in range(len(obs_feat) - 1):
-                action = actions[i]
-                next_latent = wmw.wm_step(latent, action.unsqueeze(0))
-
-                imagined_X.append(next_latent.squeeze().cpu().numpy())
-                imagined_X_starts.append(obs_feat[0].squeeze().cpu().numpy())
-                labels.append(true_y[i + 1])
-
-                latent = next_latent
+                latent = obs_feat[0].unsqueeze(0)
+                imagined_X.append(latent.squeeze().cpu().numpy())
+                imagined_X_starts.append(latent.squeeze().cpu().numpy())
+                labels.append(true_y[0])
+                imagined_ep_starts.append(idx)
                 idx += 1
+                for i in range(len(obs_feat) - 1):
+                    action = actions[i]
+                    next_latent = wmw.wm_step(latent, action.unsqueeze(0))
+
+                    imagined_X.append(next_latent.squeeze().cpu().numpy())
+                    imagined_X_starts.append(obs_feat[0].squeeze().cpu().numpy())
+                    labels.append(true_y[i + 1])
+
+                    latent = next_latent
+                    idx += 1
 
         imagined_X = np.array(imagined_X)
         imagined_X_starts = np.array(imagined_X_starts)
