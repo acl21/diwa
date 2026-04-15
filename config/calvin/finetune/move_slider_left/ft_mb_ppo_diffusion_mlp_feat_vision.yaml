@@ -59,7 +59,7 @@ env:
   n_action_steps: ${horizon_steps}
 
 train:
-  n_train_itr: 800
+  n_train_itr: 600
   n_critic_warmup_itr: 2
   n_steps: 36 # ${eval:'${env.max_episode_steps} / ${horizon_steps}'}
   gamma: 0.999
