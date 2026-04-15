@@ -27,8 +27,10 @@ sys.path.insert(0, Path(__file__).absolute().parents[1].as_posix())
 
 logger = logging.getLogger(__name__)
 
+os.environ["TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD"] = "1"
 
-@hydra.main(version_base="1.3", config_path="../config", config_name="train_wm_ddp_224")
+
+@hydra.main(version_base="1.3", config_path="../config", config_name="train_wm")
 def train(cfg: DictConfig) -> None:
     """
     This is called to start a training.

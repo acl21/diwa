@@ -9,12 +9,12 @@ _target_: diwa.agent.finetune.train_mb_ppo_diffusion_agent_visionwm.TrainMBPPODi
 name: ${env_name}_ft_diffusion_mlp_feat_ta${horizon_steps}_td${denoising_steps}_tdf${ft_denoising_steps}
 logdir: ${oc.env:DIWA_LOG_DIR}/calvin-finetune-feat/${name}/${now:%Y-%m-%d}_${now:%H-%M-%S}_${seed}
 
-base_policy_path: ${oc.env:DIWA_LOG_DIR}/calvin-pretrain-feat/${env_name}_pre_diffusion_mlp_feat_ta5_td20/2026-04-10_15-43-19_42/checkpoint/state_5000.pt
+base_policy_path: ${oc.env:DIWA_LOG_DIR}/calvin-pretrain-feat/${env_name}_pre_diffusion_mlp_feat_ta5_td20/2026-04-10_16-06-51_1234/checkpoint/state_5000.pt
 normalization_path: null
 
 seed: 42
 device: cuda:0
-env_name: turn_on_led
+env_name: turn_off_led
 env_type: calvin
 obs_dim: 2048
 action_dim: 7

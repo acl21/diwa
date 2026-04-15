@@ -9,12 +9,12 @@ _target_: diwa.agent.finetune.train_mb_ppo_diffusion_agent_visionwm.TrainMBPPODi
 name: ${env_name}_ft_diffusion_mlp_feat_ta${horizon_steps}_td${denoising_steps}_tdf${ft_denoising_steps}
 logdir: ${oc.env:DIWA_LOG_DIR}/calvin-finetune-feat/${name}/${now:%Y-%m-%d}_${now:%H-%M-%S}_${seed}
 
-base_policy_path: ${oc.env:DIWA_LOG_DIR}/calvin-pretrain-feat/${env_name}_pre_diffusion_mlp_feat_ta5_td20/2026-04-10_15-43-19_42/checkpoint/state_5000.pt
+base_policy_path: ${oc.env:DIWA_LOG_DIR}/calvin-pretrain-feat/${env_name}_pre_diffusion_mlp_feat_ta5_td20/2026-04-10_15-42-01_42/checkpoint/state_5000.pt
 normalization_path: null
 
 seed: 42
 device: cuda:0
-env_name: turn_on_led
+env_name: turn_off_lightbulb
 env_type: calvin
 obs_dim: 2048
 action_dim: 7
@@ -49,7 +49,7 @@ env:
   name: ${env_name}
   env_type: ${env_type}
   best_reward_threshold_for_success: 1
-  max_episode_steps: 72
+  max_episode_steps: 75
   save_video: true
   load_scene_from_dataset: null
   eval_scene_from_dataset: ${oc.env:DIWA_DATA_DIR}/expert/calvin-state-raw-50/${env_name}/val_robot_obs_scene_obs_starts_1.npz
