@@ -121,7 +121,7 @@ class CALVINBaseWrapper(PlayTableSimEnv):
 
         robot_obs = []
         for i in range(size):
-            robot_jnt_pos = self.robot.mixed_ik.get_ik(rand_robot_pos[1], p.getQuaternionFromEuler(rand_robot_orn[i]))
+            robot_jnt_pos = self.robot.mixed_ik.get_ik(rand_robot_pos[i], p.getQuaternionFromEuler(rand_robot_orn[i]))
             robot_obs.append(
                 np.concatenate(
                     [
